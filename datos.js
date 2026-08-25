@@ -189,7 +189,9 @@ const FORMS = {
 //                en el formulario: es lo que mas define si alguien va o no,
 //                y enterarse recien al anotarse es peor.
 //   incluye      Que cubre ese costo. Es lo que lo justifica.
-//   contacto     A quien preguntarle. Ej "Ceci · 11 4417-4937".
+//   contacto     A quien preguntarle. Ej "Nombre · 11 0000-0000". Solo si esa
+//                persona dijo que si: un numero personal en la pantalla del
+//                hall se pone preguntando, no deduciendolo de otra planilla.
 //   inscripcion  false      -> confirmado que no hace falta anotarse
 //                true       -> hace falta, pero todavia no tenemos el link
 //                "https://" -> hace falta, y ese es el link del QR
@@ -209,22 +211,55 @@ const EVENTOS = [
     horario: "19:30hs", lugar: "Mario Bravo 559",
     descripcion: "¡Vení a cantar y a pasar un tiempo para escuchar a Dios juntos, como una gran familia!",
     inscripcion: false,
-    flyer: "flyers/now-nextgen.png", hubRequired: false,
+    flyer: "flyers/now-nextgen.jpg", hubRequired: false,
   },
   {
-    // El detalle fino (datos de salud, contacto de emergencia, que la seña no
-    // se devuelve) queda en el formulario a proposito: aca va solo lo que se
-    // necesita para decidir si vas.
+    // Aca va solo lo que se necesita para decidir si vas. Todo el detalle
+    // —que incluye el costo, datos de salud, contacto de emergencia, que la
+    // seña no se devuelve— esta en el formulario, y repetirlo en la pantalla
+    // era hacerle leer dos veces lo mismo a la misma persona.
+    //
+    // Sin contacto a proposito: tenia el celular de Ceci y la consulta va por
+    // el formulario.
     fecha: "2026-09-04", fechaFin: "2026-09-06",
     nombre: "Campamento Jóvenes 18-35", tipo: "Campamento", comunidad: "JOVENES",
     horario: "Arranca el viernes a la tarde",
     lugar: "Predio CICE, Pilar",
     descripcion: "Estamos expectantes de ver lo que Dios va a hacer en esta nueva edición campamentera. Si es la primera vez que te sumás, nos alegramos un montón.",
     costo: "$110.000 hasta el 31 de agosto, después $120.000. Seña de $20.000 para reservar tu lugar.",
-    incluye: "El costo incluye el transporte de ida y vuelta, la estadía, todas las comidas y los materiales.",
-    contacto: "Ceci · 11 4417-4937",
-    inscripcion: true,   // <-- reemplazar por el link del formulario
+    inscripcion: "https://forms.gle/hp7CezkTay3jArgt6",
     flyer: "flyers/campamento-jovenes.png", hubRequired: false,
+  },
+  {
+    // Sin contacto a proposito. Tenia el WhatsApp de Paola, sacado de
+    // COMUNIDADES_LINKS, y lo sacamos: nadie confirmo que ella quiera que su
+    // numero este en la pantalla del hall. La inscripcion va por el
+    // formulario, que para esto alcanza.
+    //
+    // PENDIENTE para el inventario: preguntarle a Paola si quiere que pongamos
+    // el link del grupo de WhatsApp de GAM, asi la gente se suma sola.
+    fecha: "2026-09-05",
+    nombre: "Merienda de GAM", tipo: "Merienda", comunidad: "GAM",
+    horario: "16:00 a 18:00hs", lugar: "Mario Bravo 559",
+    descripcion: "Una tarde pre primavera para los +55. Vení con muchas ganas de divertirte y jugar: los vamos a estar esperando.",
+    inscripcion: "https://docs.google.com/forms/d/e/1FAIpQLSduYq7BzN-S_VTy2Yf1zeZGqR3PGdmJcAWnLQDItPRUI2tJnA/viewform",
+    flyer: "flyers/merienda-gam.jpg", hubRequired: false,
+  },
+  {
+    // Es la fecha concreta del paso que PASOS_NUEVO describe como "primer
+    // domingo de cada mes": el 6 de septiembre cae primer domingo. Los dos
+    // conviven a proposito. En "Soy nuevo" se explica que existe todos los
+    // meses, y aca aparece la del mes que viene con su flyer.
+    //
+    // OJO: la descripcion la escribi yo, no vino del equipo. Esta armada con
+    // lo que ya decia PASOS_NUEVO ("conocernos las caras", "no hace falta
+    // anotarse") y con el horario del flyer. Confirmarla con Buenos Aires.
+    fecha: "2026-09-06",
+    nombre: "Desayuno para Nuevos Amigos", tipo: "Desayuno", comunidad: "SADDLE",
+    horario: "10:00hs", lugar: "Mario Bravo 559",
+    descripcion: "Un café, algo rico y un rato para conocernos las caras. Si llegaste hace poco, este es el lugar más fácil para empezar: venís, charlás y preguntás lo que quieras. Es a las 10, justo antes de la reunión de las 11.",
+    inscripcion: false,
+    flyer: "flyers/desayuno-nuevos-amigos.jpg", hubRequired: false,
   },
   // Agregar mas eventos aqui...
 ];

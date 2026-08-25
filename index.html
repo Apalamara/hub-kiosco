@@ -437,12 +437,21 @@ function pantallaEvento(e) {
 }
 
 // La accion del modulo: el QR con lo que hay que hacer al lado.
+// El QR y, debajo, el link de verdad. El QR sirve para el que esta parado
+// frente al iPad y lo escanea con su telefono; al que ya esta mirando esto
+// EN el telefono, el QR no le sirve para nada y necesita algo para tocar.
+//
+// target _blank a proposito: en el iPad del kiosco, tocar un link que navega
+// en la misma pestaña deja a la persona afuera del kiosco y a la siguiente
+// que llega mirando un formulario de Google. Abriendolo aparte, el kiosco
+// sigue donde estaba.
 function accionQR(titulo, url, nota) {
   return `<div class="accion">
     ${qr(url, 104)}
-    <div>
+    <div class="accion-texto">
       <div class="accion-titulo">${esc(titulo)}</div>
       <div class="accion-nota">${esc(nota)}</div>
+      <a class="accion-link" href="${esc(url)}" target="_blank" rel="noopener">Abrir el formulario</a>
     </div>
   </div>`;
 }

@@ -572,6 +572,23 @@ body {
   margin-bottom: 4px;
 }
 .accion-nota { font-size: 0.92rem; color: var(--gray-600); }
+/* El link directo, para el que esta mirando esto en el telefono y no tiene
+   con que escanear el QR. Pastilla y no texto subrayado: en una pantalla
+   tactil un renglon de 0.95rem es un blanco chico para un dedo. */
+.accion-link {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: var(--blue-600);
+  color: var(--white);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  text-decoration: none;
+}
+.accion-link:active { background: var(--blue-700); }
+.accion-link:focus-visible { outline: 3px solid var(--gray-900); outline-offset: 2px; }
 
 /* Subtitulo de seccion dentro de una pantalla. */
 .subtitulo {
@@ -1104,7 +1121,10 @@ button.tarjeta .camino-flecha { padding-right: 0; }
   .modulo-cuerpo p { font-size: 1rem; max-width: none; }
 
   /* La accion se apila para que el QR no le coma el ancho al texto. */
-  .accion { flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 20px; padding: 14px; align-self: stretch; }
+  /* Apilado y centrado. La caja pasa a ocupar todo el ancho (align-self
+     stretch) y con el contenido pegado a la izquierda quedaba un cuadro
+     grande con todo amontonado en una esquina. */
+  .accion { flex-direction: column; align-items: center; text-align: center; gap: 12px; margin-top: 20px; padding: 18px 14px; align-self: stretch; }
   .canal { flex-direction: column; align-items: flex-start; gap: 14px; padding: 18px; }
   .canal-texto, .preguntas .pregunta-r { max-width: none; }
 
