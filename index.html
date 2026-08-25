@@ -51,13 +51,6 @@
   </footer>
 </div>
 
-<!-- TEMPORAL: comparador de los dos estilos de los caminos.
-     Esto NO va en el kiosco. Es para elegir entre los paneles de color y las
-     filas blancas mirandolas, no imaginandolas. Cuando este decidido se borra
-     este boton y el bloque "TEMPORAL" del final de estilo.css, y el estilo
-     que gane queda como el unico. -->
-<button class="comparador" id="comparador" type="button">Ver filas blancas</button>
-
 <!-- ==================== PANTALLAS INTERNAS ==================== -->
 <!-- Se generan las ocho desde JS: siete caminos y el calendario. -->
 
@@ -482,8 +475,33 @@ function bloqueActiva(numeros, texto) {
 // Los pasos van numerados y no como tarjetas iguales: el numero es lo que
 // convierte tres opciones en un camino. El que llega no tiene que elegir,
 // tiene que saber por donde arranca.
+// Los pasos se cruzan con EVENTOS por nombre. Si el paso ya tiene una fecha
+// cargada —el desayuno es "primer domingo de cada mes" y ademas hay uno el 6
+// de septiembre— deja de ser la descripcion de algo que pasa en general y se
+// convierte en una puerta a esa fecha concreta.
+//
+// El cruce es por nombre y no por un id escrito a mano en los dos lados: asi
+// cargar el evento en EVENTOS alcanza, y nadie tiene que acordarse de venir a
+// enlazarlo aca. El precio es que el nombre tiene que coincidir exacto.
 function pasos(lista) {
-  return '<ol class="pasos">' + lista.map((p, i) => `
+  const ahora = hoy(); ahora.setHours(0,0,0,0);
+
+  return '<ol class="pasos">' + lista.map((p, i) => {
+    const ev = EVENTOS
+      .filter(e => e.nombre === p.nombre && parseFecha(e.fecha) >= ahora)
+      .sort((a, b) => parseFecha(a.fecha) - parseFecha(b.fecha))[0];
+
+    // Si hay que anotarse, el boton lo dice; si no, invita a venir. Decir
+    // "anotate" cuando no hace falta manda a alguien a buscar un formulario
+    // que no existe.
+    const puerta = ev
+      ? `<button class="paso-puerta" type="button" onclick="abrirEvento('${idEvento(ev)}', 'nuevo')">
+           <span>${ev.inscripcion ? 'Anotate' : 'El próximo es el'} ${esc(fechaLegible(ev).toLowerCase())}${ev.horario ? ' · ' + esc(ev.horario) : ''}</span>
+           <span class="paso-puerta-flecha">&rsaquo;</span>
+         </button>`
+      : '';
+
+    return `
     <li class="paso">
       <span class="paso-num">${i + 1}</span>
       <span class="paso-cuerpo">
@@ -492,8 +510,10 @@ function pasos(lista) {
           ${p.cuando ? `<span class="paso-cuando">${esc(p.cuando)}</span>` : ''}
         </span>
         <span class="paso-desc">${esc(p.texto)}</span>
+        ${puerta}
       </span>
-    </li>`).join('') + '</ol>';
+    </li>`;
+  }).join('') + '</ol>';
 }
 
 // Las preguntas van despues de los pasos, a lo ancho y en dos columnas: son
@@ -558,14 +578,18 @@ function construirPantallas() {
   // 1. SOY NUEVO
   // El bloque negro de Activa se fue: arranca el modulo calido, despues la
   // secuencia (desayuno, Activa 1, Activa 2) y al final el canal.
+  // El modulo va sin QR. Tenia uno de "Anotate en Activa" que, como no hay
+  // formulario de Activa cargado, caia al Linktree: un codigo que promete una
+  // cosa y lleva a otra es peor que no tener codigo. Los pasos de abajo ya
+  // dicen que hacer, y el primero lleva a la fecha concreta cuando la hay.
+  //
+  // Las preguntas ("quien puede ir", "tengo que anotarme") tambien salieron:
+  // repetian lo que ya dicen los pasos, y la pantalla terminaba pidiendo tres
+  // lecturas para responder una sola cosa.
   pantalla('nuevo', 'Soy nuevo en Saddleback', '',
-    modulo('nuevo', accionQR(
-      TEXTOS.nuevo.accion,
-      FORMS.activa || FORMS.linktree,
-      FORMS.activa ? 'Escaneá el código con tu celular' : 'Por ahora el código lleva al Linktree'))
+    modulo('nuevo')
     + '<h2 class="subtitulo">Los primeros pasos</h2>'
     + pasos(PASOS_NUEVO)
-    + preguntas(PREGUNTAS_NUEVO)
     + bloqueCanal());
 
   // 2. BAUTISMO
@@ -581,10 +605,22 @@ function construirPantallas() {
   pantalla('comunidad', 'Encontrar mi comunidad',
     'Grupos por edad y por etapa de la vida. Buscá el tuyo.',
     '<div class="grilla">' + coms.map(c => {
+      // El orden es a proposito: WhatsApp es el canal donde la conversacion
+      // sigue, asi que va primero cuando existe. Despues Instagram, y despues
+      // el link propio de la comunidad.
+      //
+      // "link" estaba cargado en Grupos Pequenos y el codigo nunca lo miraba:
+      // habia un onlyLink escrito en los datos que ninguna linea leia, asi
+      // que la tarjeta mostraba el WhatsApp del referente en lugar del
+      // buscador de grupos. Al vaciarse los WhatsApp la tarjeta se quedaba
+      // sin nada teniendo un link perfectamente bueno cargado.
       const canal = c.whatsapp ? 'https://wa.me/' + c.whatsapp
                   : c.instagram ? 'https://instagram.com/' + c.instagram
-                  : c.linktree || '';
-      const etiqueta = c.whatsapp ? 'WhatsApp' : c.instagram ? 'Instagram' : c.linktree ? 'Más info' : '';
+                  : c.link || c.linktree || '';
+      const etiqueta = c.whatsapp ? 'WhatsApp'
+                     : c.instagram ? 'Instagram'
+                     : c.link ? (c.linkLabel || 'Más info')
+                     : c.linktree ? 'Más info' : '';
       const lider = (!c.lider || c.lider.indexOf('?') >= 0) ? FALTA + ' referente' : esc(c.lider);
       return `<div class="tarjeta">
         <div class="tarjeta-titulo">${esc(c.nombre)}</div>
@@ -727,25 +763,6 @@ function renderCalendario() {
   }
   grid.innerHTML = html;
 }
-
-// TEMPORAL: el comparador de estilos de los caminos.
-// Se acuerda de la eleccion para que refrescar la pagina no la pierda, que
-// es lo que pasa mirando esto: se refresca cada dos minutos. Se borra junto
-// con el boton y el bloque TEMPORAL de estilo.css cuando este decidido.
-(function comparador() {
-  const btn = document.getElementById('comparador');
-  const guardado = localStorage.getItem('hub-caminos');
-  const pintar = filas => {
-    document.body.classList.toggle('caminos-filas', filas);
-    btn.textContent = filas ? 'Ver paneles de color' : 'Ver filas blancas';
-  };
-  pintar(location.search.includes('filas') || guardado === 'filas');
-  btn.onclick = () => {
-    const filas = !document.body.classList.contains('caminos-filas');
-    localStorage.setItem('hub-caminos', filas ? 'filas' : 'paneles');
-    pintar(filas);
-  };
-})();
 
 // ---------- INIT ----------
 renderHome();

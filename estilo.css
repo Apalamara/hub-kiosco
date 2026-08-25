@@ -37,12 +37,13 @@
 
   /* Ritmo del kiosco. Seis filas: al sacar Actividades de la lista volvieron
      de 86 a 98px, que es la altura en que se leen y se tocan comodas.
-     Bajaron de 98 a 88 cuando el flyer del hero se hizo grande: con 98 la
-     sexta fila quedaba cortada abajo y habia que scrollear en la home, que
-     es lo unico que un kiosco no puede pedir. A 88 siguen entrando los seis
-     caminos, el hero y el pie en los 1080 del iPad.
+     De 98 a 88 cuando el flyer del hero se hizo grande, y a 76 cuando el
+     panel de color se volvio circulo: sin el panel a toda altura la fila no
+     necesita alto para mostrar el color, y 76 sigue siendo un blanco comodo
+     para un dedo. Asi entran los seis caminos, el hero y el pie en los 1080
+     del iPad, con lugar de sobra.
      Un septimo camino obliga a replantear la home, no a seguir achicando. */
-  --fila-alto: 88px;
+  --fila-alto: 76px;
   --fila-gap: 12px;
 
   /* El ancho del aparato. El kiosco no es una web que se adapta a cualquier
@@ -383,27 +384,32 @@ body {
   max-width: 46ch;
 }
 
-/* ---------- LAS SEIS FILAS ---------- */
+/* ---------- LAS SEIS FILAS ----------
+   Fila blanca, circulo de color con el icono adentro, y flecha. Todas
+   iguales salvo por el color, que es lo que hace que alguien reconozca su
+   fila de lejos sin llegar a leerla.
+
+   Antes el color era un panel a toda la altura de la fila: 124px de ancho y
+   98 de alto de color macizo, seis veces. A ese tamano el color dejaba de
+   identificar y pasaba a ser el protagonista de la pantalla. En el circulo
+   hace el mismo trabajo ocupando la decima parte, y la fila baja de 98 a 76
+   de alto, que es lo que deja entrar la home entera en el iPad. */
 .caminos { display: flex; flex-direction: column; gap: var(--fila-gap); }
 
-/* Cada fila arranca con un panel de color a toda la altura. Ese panel es
-   el lugar de la foto: cuando exista, entra como background-image y el
-   color queda debajo. El panel es tambien lo que hace evidente que la fila
-   se toca. */
 .camino {
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  gap: 18px;
   min-height: var(--fila-alto);
+  padding: 0 22px;
   background: var(--white);
   border: 1px solid var(--warm-100);
-  border-radius: var(--radius);
-  overflow: hidden;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   text-align: left;
   font: inherit;
   color: inherit;
   width: 100%;
-  padding: 0;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 /* En una tablet no hay hover: el unico feedback que el dedo percibe es el
@@ -411,33 +417,38 @@ body {
 .camino:active { transform: scale(0.985); box-shadow: 0 2px 14px rgba(0,0,0,0.10); }
 .camino:focus-visible { outline: 3px solid var(--blue-600); outline-offset: 3px; }
 
+/* El color de cada circulo viene escrito en el atributo style desde
+   datos.js. Si algun dia hay foto de la comunidad, entra redonda en el mismo
+   circulo sin tocar nada de aca. */
 .camino-panel {
-  width: 124px;
-  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   background-size: cover;
   background-position: center;
 }
-.camino-panel svg { width: 46px; height: 46px; stroke: var(--white); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.camino-panel svg { width: 23px; height: 23px; stroke: var(--white); fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 
-.camino-texto { flex: 1; padding: 0 24px; display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; }
+.camino-texto { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; }
+/* Sin Archivo expandido ni versalitas: seis titulos display uno abajo del
+   otro gritaban todos a la vez. En negrita comun se leen igual de rapido y
+   la pantalla se calma. */
 .camino-titulo {
-  font-family: var(--font-display);
-  font-stretch: 112%;
-  font-size: 1.5rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  line-height: 1.1;
+  font-size: 1.14rem;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+  line-height: 1.2;
 }
-.camino-sub { font-size: 1rem; color: var(--gray-600); line-height: 1.25; }
+.camino-sub { font-size: 0.95rem; color: var(--gray-600); line-height: 1.25; }
 .camino-flecha {
   display: flex;
   align-items: center;
-  padding-right: 26px;
-  font-size: 2rem;
-  color: var(--gray-300);
+  font-size: 1.6rem;
+  color: var(--blue-600);
   flex-shrink: 0;
 }
 
@@ -1130,14 +1141,15 @@ button.tarjeta .camino-flecha { padding-right: 0; }
   .hero-que { font-size: 1.25rem; }
 
 
-  /* Las filas: panel mas angosto y titulo mas chico, que "Encontrar mi
-     comunidad" a 1.5rem en 200px de ancho se partia en tres lineas. */
-  .camino-panel { width: 76px; }
-  .camino-panel svg { width: 32px; height: 32px; }
-  .camino-texto { padding: 0 14px; gap: 2px; }
-  .camino-titulo { font-size: 1.08rem; letter-spacing: 0.2px; }
+  /* Las filas, mas apretadas. El circulo baja de 46 a 40 y el padding de 22
+     a 16: en 350px de ancho, con 46+22+22 el texto se quedaba con 200px y
+     "Encontrar mi comunidad" se partia en tres lineas. */
+  .camino { padding: 0 16px; gap: 14px; }
+  .camino-panel { width: 40px; height: 40px; flex-basis: 40px; }
+  .camino-panel svg { width: 21px; height: 21px; }
+  .camino-titulo { font-size: 1.02rem; }
   .camino-sub { font-size: 0.85rem; }
-  .camino-flecha { padding-right: 14px; font-size: 1.5rem; }
+  .camino-flecha { font-size: 1.4rem; }
 
   /* El modulo calido: foto arriba a todo el ancho, texto abajo. En 350px
      partirlo 45/55 dejaba dos tiras ilegibles. */
@@ -1210,74 +1222,26 @@ button.tarjeta .camino-flecha { padding-right: 0; }
   .camino:active { transform: none; }
 }
 
-
-/* ============================================================
-   TEMPORAL - COMPARADOR DE ESTILOS DE LOS CAMINOS
-   Todo lo de abajo se borra cuando este elegido, junto con el
-   boton .comparador del final del body en kiosco.html.
-   ============================================================ */
-
-/* El boton para cambiar de estilo. Flota arriba de todo y no forma parte
-   del kiosco. */
-.comparador {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 99;
-  background: var(--gray-900);
-  color: var(--white);
+/* La puerta de un paso: aparece solo cuando ese paso ya tiene una fecha
+   cargada en EVENTOS. Es lo unico tocable dentro de la lista de pasos, asi
+   que se ve como boton y no como texto. */
+.paso-puerta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 9px 16px;
   border: 0;
   border-radius: 999px;
-  padding: 12px 20px;
+  background: var(--blue-600);
+  color: var(--white);
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 700;
+  letter-spacing: 0.2px;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+  text-align: left;
 }
-
-/* ---- VERSION B: filas blancas, como saddleback.com ----
-   Misma estructura, otro traje: el panel de color a toda altura se convierte
-   en un circulo azul, todas las filas quedan iguales y bajan de 98 a 76px de
-   alto. Se gana calma y parecido con la web de la iglesia; se pierden los
-   seis colores, que eran lo que hacia que cada camino se reconociera de
-   lejos sin leerlo. */
-body.caminos-filas .camino {
-  min-height: 76px;
-  align-items: center;
-  border-radius: var(--radius-sm);
-  padding: 0 22px;
-  gap: 18px;
-}
-/* El circulo se queda con el color que cada camino trae en datos.js, que es
-   el mismo que tenia el panel a toda altura. Todos azules era copiar el
-   ejemplo hasta donde no convenia: sin color los seis caminos se distinguen
-   solo por el texto, y en un iPad parado en el hall el color es lo que hace
-   que alguien reconozca su fila antes de leerla.
-
-   Sin !important justamente para eso: el background-color viene escrito en
-   el atributo style de cada fila y tiene que ganar. Si algun dia hay foto,
-   entra redonda en el mismo circulo sin tocar nada. */
-body.caminos-filas .camino-panel {
-  width: 46px;
-  height: 46px;
-  flex: 0 0 46px;
-  border-radius: 50%;
-}
-body.caminos-filas .camino-panel svg { width: 23px; height: 23px; stroke-width: 1.9; }
-body.caminos-filas .camino-texto { padding: 0; gap: 2px; }
-/* Sin Archivo expandido ni versalitas: en el ejemplo los titulos de las filas
-   son texto comun en negrita, y ahi esta la mitad de la calma. */
-body.caminos-filas .camino-titulo {
-  font-family: inherit;
-  font-stretch: normal;
-  font-size: 1.14rem;
-  font-weight: 700;
-  letter-spacing: 0.1px;
-}
-body.caminos-filas .camino-sub { font-size: 0.95rem; }
-body.caminos-filas .camino-flecha {
-  padding-right: 0;
-  font-size: 1.6rem;
-  color: var(--blue-600);
-}
+.paso-puerta:active { background: var(--blue-700); }
+.paso-puerta:focus-visible { outline: 3px solid var(--gray-900); outline-offset: 2px; }
+.paso-puerta-flecha { font-size: 1.2rem; line-height: 1; }

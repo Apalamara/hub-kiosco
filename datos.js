@@ -37,10 +37,13 @@ const CAMINOS = [
 // lo mas facil de decirle si, y despues Activa. "Por donde empiezo" se
 // responde con una secuencia, no con una lista de opciones sueltas.
 //
-// OJO: que cubre cada Activa es una inferencia de lo que ya decia el
-// prototipo ("conocer de que se trata, encontrar tu lugar y dar los
-// primeros pasos"), porque saddleback.com no separa Activa 1 de Activa 2.
-// Hay que confirmarlo con el equipo de Buenos Aires.
+// Activa 2 estaba cargada con un texto inventado: saddleback.com no separa
+// Activa 1 de Activa 2, asi que lo que decia era una inferencia mia y no algo
+// que dijera el equipo. Sale hasta que alguien de Buenos Aires confirme que
+// existe y que cubre.
+//
+// El primer paso no lleva "cuando" fijo porque lo saca de EVENTOS: si hay un
+// desayuno cargado con fecha, el paso muestra esa fecha y se puede tocar.
 const PASOS_NUEVO = [
   {
     nombre: "Desayuno para Nuevos Amigos",
@@ -51,11 +54,6 @@ const PASOS_NUEVO = [
     nombre: "Activa 1",
     cuando: "Una hora",
     texto: "De qué se trata Saddleback, en qué creemos y cómo se conecta tu historia con la de la iglesia.",
-  },
-  {
-    nombre: "Activa 2",
-    cuando: "Una hora",
-    texto: "Encontrar tu lugar: la comunidad que te corresponde y los primeros pasos concretos para crecer.",
   },
 ];
 
@@ -137,7 +135,7 @@ const TEXTOS = {
     titulo: "Tu primer paso en Saddleback empieza acá",
     parrafos: [
       "No hace falta saber nada ni creer nada para entrar. Alcanza con tener ganas de conocer de qué se trata.",
-      "Hay tres maneras de empezar y ninguna te compromete a la siguiente. Podés hacer una sola y quedarte ahí el tiempo que quieras.",
+      "Hay más de una manera de empezar y ninguna te compromete a la siguiente. Podés hacer una sola y quedarte ahí el tiempo que quieras.",
     ],
     accion: "Anotate en Activa",
   },
@@ -381,6 +379,15 @@ const RECURRENTES = [
 ];
 
 // --- COMUNIDADES_LINKS ---
+// Los "whatsapp" estan todos vacios a proposito. Tenian el numero personal
+// del referente de cada comunidad, sacado de una planilla interna, y en la
+// pantalla del hall eso queda publicado sin que la persona lo haya aceptado.
+// Vuelven de a uno, cuando cada referente diga que si —y mejor todavia si en
+// lugar de su numero personal pasa el link del grupo de la comunidad.
+//
+// Mientras tanto la tarjeta cae al Instagram, o al link de la comunidad, o
+// muestra el hueco marcado. El hueco es el recordatorio de a quien falta
+// preguntarle.
 const COMUNIDADES_LINKS = [
   {
     nombre: "El Hub",
@@ -401,7 +408,7 @@ const COMUNIDADES_LINKS = [
     descripcion: "Ministerio para los más pequeños de la iglesia.",
     color: "#3d8a5f",
     icono: "&#127880;",
-    whatsapp: "5491122532582",       // Geli
+    whatsapp: "",                    // <-- Geli no confirmo que quiera su numero en pantalla
     instagram: "saddlebackkidsbsas",
   },
   {
@@ -411,7 +418,7 @@ const COMUNIDADES_LINKS = [
     descripcion: "Comunidad para preadolescentes.",
     color: "#1f8a7d",
     icono: "&#11088;",
-    whatsapp: "5491156938142",       // Andrea
+    whatsapp: "",                    // <-- Andrea no confirmo que quiera su numero en pantalla
     instagram: "",                   // <-- Agregar handle de IG
   },
   {
@@ -431,7 +438,7 @@ const COMUNIDADES_LINKS = [
     descripcion: "Comunidad de jóvenes. Se juntan los sábados.",
     color: "#b06a14",
     icono: "&#128293;",
-    whatsapp: "5491122829012",       // Martin
+    whatsapp: "",                    // <-- Martin no confirmo que quiera su numero en pantalla
     instagram: "",                   // <-- Agregar handle de IG
   },
   {
@@ -461,7 +468,7 @@ const COMUNIDADES_LINKS = [
     descripcion: "Comunidad para adultos mayores. Desayunos, teatro, encuentros.",
     color: "#6a4a91",
     icono: "&#128156;",
-    whatsapp: "5491153875561",       // Paola
+    whatsapp: "",                    // <-- Paola no confirmo que quiera su numero en pantalla
     instagram: "",                   // <-- Agregar handle de IG
   },
   {
@@ -481,11 +488,10 @@ const COMUNIDADES_LINKS = [
     descripcion: "Grupos de vida en comunidad. Buscá uno cerca tuyo.",
     color: "#1980cc",
     icono: "&#129309;",
-    whatsapp: "5491130082648",       // Ruben
+    whatsapp: "",                    // <-- Ruben no confirmo que quiera su numero en pantalla
     instagram: "",                   // <-- Agregar handle de IG
     link: "https://saddleback.com/groups/find-a-group?campus=5",
     linkLabel: "Buscar grupo",
-    onlyLink: true,                  // muestra solo el QR del link, oculta WA/IG
   },
 ];
 
