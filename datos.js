@@ -1,0 +1,479 @@
+// ============================================================
+//  DATOS DE EL HUB
+//  Aca se carga todo. Es el unico archivo que se edita para
+//  actualizar el kiosco: no hace falta tocar el HTML.
+//
+//  La carga es por consola hasta que se habilite que cargue
+//  cualquiera. El Hub es la fuente; el Linktree (linktr.ee/EL_HUB)
+//  es el espejo. Los CSV de input/ son historicos, NO son fuente.
+// ============================================================
+
+
+// --- LOS SEIS CAMINOS DE LA HOME ---
+// El orden de este array es el orden en pantalla.
+//
+// Son seis intenciones y nada mas: lo que alguien quiere, que no caduca. Las
+// actividades NO van aca aunque tengan pantalla propia: son un listado de lo
+// que pasa esta semana, otra pregunta, y viven arriba junto al hero.
+//
+// "color" es el panel izquierdo de la fila. Ese panel es el lugar donde
+// entra la foto: cuando haya fotos de la gente de Buenos Aires, se completa
+// "foto" con la ruta del archivo y el color se reemplaza solo, sin tocar el
+// diseno ni el codigo.
+const CAMINOS = [
+  { id: "nuevo",          titulo: "Soy nuevo en Saddleback", sub: "Por dónde empezar",              color: "#1980cc", icono: "puerta",     foto: "" },
+  { id: "comunidad",      titulo: "Encontrar mi comunidad",  sub: "Por edad y por etapa de la vida", color: "#6a4a91", icono: "grupo",      foto: "" },
+  { id: "servir",         titulo: "Quiero servir",           sub: "Sumate al Dream Team",           color: "#f15b4e", icono: "manos",      foto: "" },
+  { id: "crecer",         titulo: "Quiero crecer en mi fe",  sub: "Discipulado y formación",        color: "#3f7d3f", icono: "brote",      foto: "" },
+  // Ambar y no el verde que tenia: al quedar pegado a "crecer", dos verdes
+  // seguidos se leian como el mismo color y el panel dejaba de distinguir.
+  { id: "acompanamiento", titulo: "Acompañamiento",          sub: "Para cuando estás pasando algo difícil", color: "#b06a14", icono: "corazon", foto: "" },
+  { id: "bautismo",       titulo: "Quiero bautizarme",       sub: "Qué es y cómo se hace",          color: "#0e7f9e", icono: "gota",       foto: "" },
+];
+
+
+// --- LOS PRIMEROS PASOS ---
+// El orden es el orden real y es a proposito: primero el desayuno, que es
+// lo mas facil de decirle si, y despues Activa. "Por donde empiezo" se
+// responde con una secuencia, no con una lista de opciones sueltas.
+//
+// OJO: que cubre cada Activa es una inferencia de lo que ya decia el
+// prototipo ("conocer de que se trata, encontrar tu lugar y dar los
+// primeros pasos"), porque saddleback.com no separa Activa 1 de Activa 2.
+// Hay que confirmarlo con el equipo de Buenos Aires.
+const PASOS_NUEVO = [
+  {
+    nombre: "Desayuno para Nuevos Amigos",
+    cuando: "Primer domingo de cada mes",
+    texto: "Un desayuno para conocernos las caras y que nos preguntes lo que quieras. No hace falta anotarse: venís y ya.",
+  },
+  {
+    nombre: "Activa 1",
+    cuando: "Una hora",
+    texto: "De qué se trata Saddleback, en qué creemos y cómo se conecta tu historia con la de la iglesia.",
+  },
+  {
+    nombre: "Activa 2",
+    cuando: "Una hora",
+    texto: "Encontrar tu lugar: la comunidad que te corresponde y los primeros pasos concretos para crecer.",
+  },
+];
+
+
+// --- LAS PREGUNTAS DE LOS QUE LLEGAN ---
+// Las que frenan a alguien en la puerta. Salen de la pagina de Activate de
+// saddleback.com y de los datos de Buenos Aires. Sacar la excusa para no
+// venir sirve mas que explicar mejor de que se trata.
+const PREGUNTAS_NUEVO = [
+  { p: "¿Quién puede ir?",     r: "Cualquiera. No hace falta ser parte de nada ni creer nada." },
+  { p: "¿Tengo que anotarme?", r: "Podés, pero no hace falta. Si caés, entrás." },
+  { p: "¿Cuánto dura?",        r: "Una hora." },
+  { p: "¿Dónde es?",           r: "Mario Bravo 559." },
+
+  // Estas dos estan en la web de Saddleback US. Confirmar con el equipo de
+  // Buenos Aires si aplican aca y, si aplican, descomentarlas: la de los
+  // hijos es la que mas decide si alguien viene o no.
+  // { p: "¿Qué llevo?", r: "Nada. El cuadernillo y la lapicera te los damos nosotros." },
+  // { p: "¿Y mis hijos?", r: "Hay guardería en Saddleback Kids mientras estás en Activa." },
+];
+
+
+// --- AREAS DEL DREAM TEAM ---
+// Confirmadas con Ani el 21/08/2026. Pueden venir mas.
+// "que" es lo que hace el area; falta definir Kids y SYM.
+const AREAS = [
+  { nombre: "Primeras Impresiones", que: "Recibir a la gente que llega", referente: "Ruben" },
+  { nombre: "Kids",                 que: "", referente: "Geli" },
+  { nombre: "SYM",                  que: "", referente: "Saulo" },
+  { nombre: "Worship / Oración",    que: "", referente: "Dami" },
+  { nombre: "Peace",                que: "Salir a servir a la comunidad", referente: "Gleisner" },
+  { nombre: "Atomo",                que: "Diseño y audiovisual", referente: "Dani" },
+  { nombre: "Hub",                  que: "Armado del espacio los domingos", referente: "Equipo Hub" },
+];
+
+
+// --- LA REUNION DE LOS DOMINGOS ---
+// Va aparte de EVENTOS a proposito: no es una actividad con fecha, es lo
+// que pasa todas las semanas. Por eso en pantalla tiene su propia franja.
+const REUNIONES = {
+  horas: ["11:00", "17:00", "19:00"],
+  lugar: "Mario Bravo 559",
+};
+
+
+// --- FOTOS ---
+// El kiosco tiene un lugar reservado para foto en el hero. Mientras la ruta
+// este vacia queda un degrade calido con el cartel de "falta foto": no se ve
+// roto, se ve pendiente. Cuando haya foto de la gente de Buenos Aires, se
+// pone el archivo en output/fotos/ y se completa la ruta aca. Nada mas.
+const FOTOS = {
+  hero: "",       // ej: "fotos/domingo.jpg"
+  bautismo: "",   // apaisada, gente abrazandose despues del bautismo
+  nuevo: "",      // apaisada, el desayuno de nuevos amigos o gente charlando
+  crecer: "",     // apaisada, dos personas charlando con un cafe, o un grupo
+};
+
+
+// --- EL CANAL DE DIFUSION ---
+// Es lo unico que alguien se lleva puesto del kiosco: la pantalla se apaga,
+// el telefono no. Mientras el link este vacio, el QR cae al Linktree.
+const CANALES = {
+  whatsapp: "",   // <-- link del canal de difusion de WhatsApp
+};
+
+
+// --- TEXTOS DE LOS CAMINOS ---
+// El modulo calido que abre cada pantalla: titulo en caja baja y parrafos
+// escritos como los diria una persona, no como una planilla. El patron es
+// el modulo de bautismo de saddleback.com; la idea es que el kiosco se lea
+// como la web de la iglesia.
+//
+// Las claves son los id de CAMINOS. Falta escribir los otros cinco.
+const TEXTOS = {
+  nuevo: {
+    // Encuadre tomado de saddleback.com/sections/get-involved/adults/activate/
+    // y traducido. La web no separa Activa en 1, 2 y 3: describe una sola
+    // experiencia de una hora. La secuencia de abajo es la de Buenos Aires.
+    titulo: "Tu primer paso en Saddleback empieza acá",
+    parrafos: [
+      "No hace falta saber nada ni creer nada para entrar. Alcanza con tener ganas de conocer de qué se trata.",
+      "Hay tres maneras de empezar y ninguna te compromete a la siguiente. Podés hacer una sola y quedarte ahí el tiempo que quieras.",
+    ],
+    accion: "Anotate en Activa",
+  },
+  crecer: {
+    // Los dos caminos que describen los parrafos son Reinicio (uno a uno) y
+    // Fundamentos (en grupo), que es lo que hay cargado en RECURRENTES.
+    titulo: "¿Querés crecer y no sabés por dónde?",
+    parrafos: [
+      "Creer no es un interruptor que se prende una vez. Se parece más a entrenar: pasa de a poco, y pasa mejor acompañado que solo.",
+      "Hay dos caminos según dónde estés. Uno es uno a uno, con alguien que te acompaña de cerca. El otro es en grupo, con más tiempo y más profundidad.",
+    ],
+    accion: "Quiero empezar",
+  },
+  bautismo: {
+    titulo: "¿El bautismo es tu próximo paso?",
+    parrafos: [
+      "El bautismo es la manera de contarle a todos que estás siguiendo a Jesús. No te hace parte de la familia: muestra que ya lo sos.",
+      "Cuando te bautizás en Saddleback te damos la remera, el short y la toalla. Vos traé a tu familia y a tus amigos, así celebramos juntos tu vida nueva.",
+    ],
+    accion: "Contanos que te interesa",
+  },
+};
+
+
+// --- FORMULARIOS ---
+// Mientras ACTIVA este vacio, la pantalla muestra el QR del Linktree
+// en lugar de un boton que no lleva a ningun lado.
+const FORMS = {
+  activa:      "",
+  bautismo:    "https://forms.gle/nFoENjFamgUzwZceA",
+  crecimiento: "",   // <-- formulario de Reinicio / Fundamentos (Jose Salazar)
+  linktree:    "https://linktr.ee/EL_HUB",
+};
+
+
+// --- EVENTOS ---
+// Cada evento tiene su propia pantalla, a la que se llega tocandolo en
+// Actividades. Los cuatro datos que alguien necesita antes de decidir si va
+// son descripcion, horario, direccion e inscripcion.
+//
+// No hace falta tener todo: lo que falte se muestra como hueco marcado, que
+// es mejor que inventarlo o que esconderlo.
+//
+//   descripcion  Que es y para quien, en una o dos frases.
+//   fechaFin     Solo si dura varios dias. La pantalla muestra el rango.
+//   horario      Ej "19:30hs". Va junto a la fecha.
+//   lugar        La direccion. Casi siempre "Mario Bravo 559".
+//   costo        Solo si sale plata. Va en la pantalla aunque el detalle este
+//                en el formulario: es lo que mas define si alguien va o no,
+//                y enterarse recien al anotarse es peor.
+//   incluye      Que cubre ese costo. Es lo que lo justifica.
+//   contacto     A quien preguntarle. Ej "Ceci · 11 4417-4937".
+//   inscripcion  false      -> confirmado que no hace falta anotarse
+//                true       -> hace falta, pero todavia no tenemos el link
+//                "https://" -> hace falta, y ese es el link del QR
+//                null       -> todavia no sabemos si hace falta
+//   flyer        Ruta dentro de output/flyers/. Se usa en la pantalla del
+//                evento entero y en el hero de la home recortado.
+const EVENTOS = [
+  {
+    fecha: "2026-08-22", nombre: "Adultos 35-55", tipo: "Encuentro", comunidad: "Adultos",
+    horario: "19:30hs", lugar: "Mario Bravo 559",
+    descripcion: "",
+    inscripcion: null,
+    flyer: "", hubRequired: false,
+  },
+  {
+    fecha: "2026-08-29", nombre: "Now NextGen", tipo: "Noche de adoración", comunidad: "SADDLE",
+    horario: "19:30hs", lugar: "Mario Bravo 559",
+    descripcion: "¡Vení a cantar y a pasar un tiempo para escuchar a Dios juntos, como una gran familia!",
+    inscripcion: false,
+    flyer: "flyers/now-nextgen.png", hubRequired: false,
+  },
+  {
+    // El detalle fino (datos de salud, contacto de emergencia, que la seña no
+    // se devuelve) queda en el formulario a proposito: aca va solo lo que se
+    // necesita para decidir si vas.
+    fecha: "2026-09-04", fechaFin: "2026-09-06",
+    nombre: "Campamento Jóvenes 18-35", tipo: "Campamento", comunidad: "JOVENES",
+    horario: "Arranca el viernes a la tarde",
+    lugar: "Predio CICE, Pilar",
+    descripcion: "Estamos expectantes de ver lo que Dios va a hacer en esta nueva edición campamentera. Si es la primera vez que te sumás, nos alegramos un montón.",
+    costo: "$110.000 hasta el 31 de agosto, después $120.000. Seña de $20.000 para reservar tu lugar.",
+    incluye: "El costo incluye el transporte de ida y vuelta, la estadía, todas las comidas y los materiales.",
+    contacto: "Ceci · 11 4417-4937",
+    inscripcion: true,   // <-- reemplazar por el link del formulario
+    flyer: "flyers/campamento-jovenes.png", hubRequired: false,
+  },
+  // Agregar mas eventos aqui...
+];
+
+// --- RECURRENTES ---
+const RECURRENTES = [
+  {
+    nombre: "Bautismos Adultos",
+    comunidad: "SADDLE",
+    descripcion: "Las fechas se van anunciando. Formulario de inscripción disponible en el Linktree.",
+    dia: "A coordinar", lugar: "Mario Bravo 559", horario: "17:00 y 19:00hs",
+    contacto: "Ruben Altamirano", metodo: "Linktree", status: "Ongoing"
+  },
+  {
+    nombre: "Bautismos Menores de 18",
+    comunidad: "SADDLE",
+    descripcion: "Requiere coordinación previa con las responsables de Kids.",
+    dia: "A coordinar", lugar: "Mario Bravo 559", horario: "17:00 y 19:00hs",
+    contacto: "Geli / Ceci", metodo: "Contacto directo", status: "Ongoing"
+  },
+  {
+    nombre: "Celebremos la Recuperación",
+    comunidad: "CR",
+    descripcion: "Programa de apoyo basado en los 12 pasos para personas que buscan recuperarse de adicciones y comportamientos compulsivos.",
+    dia: "Viernes", lugar: "Mario Bravo 559", horario: "19:00hs",
+    contacto: "", metodo: "Asistir presencialmente", status: "Ongoing"
+  },
+  {
+    nombre: "Clases de Piano",
+    comunidad: "Arte",
+    descripcion: "Coordinar días y horarios con el profesor.",
+    dia: "A coordinar", lugar: "A coordinar", horario: "A coordinar",
+    contacto: "Fer Codina", metodo: "Formulario Google", status: "Ongoing"
+  },
+  {
+    nombre: "Grupos Pequeños",
+    comunidad: "SADDLE",
+    descripcion: "Inscripción a través del Linktree para asignación de grupo.",
+    dia: "A coordinar", lugar: "A coordinar", horario: "A coordinar",
+    contacto: "Ruben Altamirano", metodo: "Linktree", status: "Ongoing"
+  },
+  {
+    nombre: "Oración",
+    comunidad: "Worship",
+    descripcion: "Juntos en oración. Abierto a toda la comunidad, no requiere inscripción previa.",
+    dia: "Jueves", lugar: "Mario Bravo 559", horario: "19:30hs",
+    contacto: "Damian Coppola", metodo: "Sin inscripción", status: "Ongoing"
+  },
+  {
+    nombre: "Transformando Calles",
+    comunidad: "PEACE",
+    descripcion: "Coordinar el lugar y el horario con el responsable.",
+    dia: "Viernes", lugar: "A coordinar", horario: "A coordinar",
+    contacto: "Gleisner", metodo: "11 2898 2641", status: "Ongoing"
+  },
+  {
+    nombre: "Clases de Guitarra",
+    comunidad: "Arte",
+    descripcion: "Coordinar días y horarios con el profesor.",
+    dia: "A coordinar", lugar: "A coordinar", horario: "A coordinar",
+    contacto: "Victor Ariza", metodo: "11 2656 9772", status: "Pausado"
+  },
+  {
+    nombre: "Coro",
+    comunidad: "Arte",
+    descripcion: "Si te gusta cantar y queres ser parte de algo especial, unite. Presentarse directo, no requiere inscripción.",
+    dia: "Lunes", lugar: "Mario Bravo 559", horario: "19:30hs",
+    contacto: "Connie Bongarra", metodo: "Presentarse directo", status: "Pausado"
+  },
+  {
+    nombre: "Teatro",
+    comunidad: "Arte",
+    descripcion: "Coordinar con Silvia para inscripciones e información.",
+    dia: "Sábados", lugar: "Mario Bravo 559", horario: "15:00 a 17:30hs",
+    contacto: "Silvia M", metodo: "11 5939 6976", status: "Pausado"
+  },
+  {
+    nombre: "Teatro +55",
+    comunidad: "GAM",
+    descripcion: "Actividad para mayores de 55 años.",
+    dia: "Lunes", lugar: "Mario Bravo 559", horario: "18:00hs",
+    contacto: "Romina Venegas", metodo: "Consultar", status: "Pausado"
+  },
+  {
+    nombre: "Reinicio",
+    comunidad: "C.Esp.",
+    descripcion: "Programa de discipulado básico. 12 encuentros uno a uno para cuestionarte, aprender y tomar decisiones.",
+    dia: "A coordinar", lugar: "A coordinar", horario: "A coordinar",
+    contacto: "Jose Salazar", metodo: "Formulario Google", status: "Pausado"
+  },
+  {
+    nombre: "Fundamentos",
+    comunidad: "C.Esp.",
+    descripcion: "Discipulado avanzado presencial en grupo. Tres módulos, dos meses cada uno. Los temas no son correlativos.",
+    dia: "Sábados", lugar: "Mario Bravo 559", horario: "15:00 a 17:00hs",
+    contacto: "Jose Salazar", metodo: "Formulario Google", status: "Pausado"
+  },
+  {
+    nombre: "ECOS (Hospitales)",
+    comunidad: "PEACE",
+    descripcion: "Visitas a hospitales para bendecir personas en distintas situaciónes.",
+    dia: "A coordinar", lugar: "A coordinar", horario: "A coordinar",
+    contacto: "Gleisner", metodo: "11 2898 2641", status: "Pausado"
+  },
+  {
+    nombre: "Mayores Amigos",
+    comunidad: "PEACE",
+    descripcion: "Visita a hospital.",
+    dia: "Sábados", lugar: "A coordinar", horario: "09:30hs",
+    contacto: "Gleisner", metodo: "11 2898 2641", status: "Pausado"
+  },
+  {
+    nombre: "Entrega de Donaciones",
+    comunidad: "PEACE",
+    descripcion: "Entrega de cosas para personas en situación de calle.",
+    dia: "Miercoles", lugar: "A coordinar", horario: "15:00hs",
+    contacto: "Gleisner", metodo: "11 2898 2641", status: "Pausado"
+  },
+];
+
+// --- COMUNIDADES_LINKS ---
+const COMUNIDADES_LINKS = [
+  {
+    nombre: "El Hub",
+    rango: "General",
+    lider: "Equipo Hub",
+    descripcion: "Punto de conexión central de Saddleback Buenos Aires. Linktree con toda la info.",
+    color: "#242424",
+    icono: "&#127968;",
+    whatsapp: "",                    // <-- Agregar si hay grupo WA del Hub
+    instagram: "",                   // <-- Agregar handle de IG
+    linktree: "https://linktr.ee/EL_HUB",
+    esHero: true,
+  },
+  {
+    nombre: "Kids",
+    rango: "0 a 8 años",
+    lider: "Geli",
+    descripcion: "Ministerio para los más pequeños de la iglesia.",
+    color: "#3d8a5f",
+    icono: "&#127880;",
+    whatsapp: "5491122532582",       // Geli
+    instagram: "saddlebackkidsbsas",
+  },
+  {
+    nombre: "PreTeens",
+    rango: "9 a 12 años",
+    lider: "Juan y Andrea",
+    descripcion: "Comunidad para preadolescentes.",
+    color: "#1f8a7d",
+    icono: "&#11088;",
+    whatsapp: "5491156938142",       // Andrea
+    instagram: "",                   // <-- Agregar handle de IG
+  },
+  {
+    nombre: "SYM",
+    rango: "12 a 17 años",
+    lider: "Saulo",
+    descripcion: "Comunidad para adolescentes.",
+    color: "#14707c",
+    icono: "&#9889;",
+    whatsapp: "",                    // <-- Agregar numero
+    instagram: "sym.bsas",
+  },
+  {
+    nombre: "Jóvenes",
+    rango: "18 a 25 años",
+    lider: "Martin & Vale",
+    descripcion: "Comunidad de jóvenes. Se juntan los sábados.",
+    color: "#b06a14",
+    icono: "&#128293;",
+    whatsapp: "5491122829012",       // Martin
+    instagram: "",                   // <-- Agregar handle de IG
+  },
+  {
+    nombre: "+25",
+    rango: "25 a 35 años",
+    lider: "???",
+    descripcion: "Comunidad de jóvenes adultos. Se juntan los sábados.",
+    color: "#c0563a",
+    icono: "&#128293;",
+    whatsapp: "",                    // <-- Agregar numero
+    instagram: "",                   // <-- Agregar handle de IG
+  },
+  {
+    nombre: "Adultos",
+    rango: "35 a 55 años",
+    lider: "???",
+    descripcion: "Comunidad de adultos.",
+    color: "#5b6b7a",
+    icono: "&#128104;&#8205;&#127979;",
+    whatsapp: "",                    // <-- Agregar numero
+    instagram: "",                   // <-- Agregar handle de IG
+  },
+  {
+    nombre: "GAM",
+    rango: "+55 años",
+    lider: "Paola",
+    descripcion: "Comunidad para adultos mayores. Desayunos, teatro, encuentros.",
+    color: "#6a4a91",
+    icono: "&#128156;",
+    whatsapp: "5491153875561",       // Paola
+    instagram: "",                   // <-- Agregar handle de IG
+  },
+  {
+    nombre: "Enlazados",
+    rango: "Matrimonios",
+    lider: "Pipi",
+    descripcion: "Comunidad para matrimonios. Encuentros Refresh y más.",
+    color: "#a83c69",
+    icono: "&#128141;",
+    whatsapp: "",                    // <-- Agregar numero de Pipi
+    instagram: "",                   // <-- Agregar handle de IG
+  },
+  {
+    nombre: "Grupos Pequeños",
+    rango: "Todas las edades",
+    lider: "Ruben",
+    descripcion: "Grupos de vida en comunidad. Buscá uno cerca tuyo.",
+    color: "#1980cc",
+    icono: "&#129309;",
+    whatsapp: "5491130082648",       // Ruben
+    instagram: "",                   // <-- Agregar handle de IG
+    link: "https://saddleback.com/groups/find-a-group?campus=5",
+    linkLabel: "Buscar grupo",
+    onlyLink: true,                  // muestra solo el QR del link, oculta WA/IG
+  },
+];
+
+// --- SERIES ---
+const SERIES = [
+  { nombre: "Each Campus Message",          desc: "Cada campus comparte su propio mensaje.", fechaInicio: "2026-01-04", semanas: 1, predicadores: ["LIVE"] },
+  { nombre: "Back on Track",                desc: "", fechaInicio: "2026-01-11", semanas: 5, predicadores: ["AW", "WILL", "SEBA", "SW", "LIVE"] },
+  { nombre: "Groups Weekend Message",       desc: "Church Together Weekend.", fechaInicio: "2026-02-15", semanas: 1, predicadores: ["LIVE"] },
+  { nombre: "Stand Alone — Return Gathering", desc: "", fechaInicio: "2026-02-22", semanas: 1, predicadores: ["LIVE"] },
+  { nombre: "Post Return",                  desc: "", fechaInicio: "2026-03-01", semanas: 1, predicadores: ["AW"] },
+  { nombre: "Jesús en Movimiento",          desc: "", fechaInicio: "2026-03-08", semanas: 4, predicadores: ["AW", "WILL", "SEBA", "LIVE"] },
+  { nombre: "Easter",                       desc: "Mensaje pre-grabado.", fechaInicio: "2026-04-05", semanas: 1, predicadores: ["AW"] },
+  { nombre: "Stand Alone",                  desc: "", fechaInicio: "2026-04-12", semanas: 1, predicadores: ["LIVE"] },
+  { nombre: "Camino hacia la Paz",          desc: "", fechaInicio: "2026-04-19", semanas: 5, predicadores: ["AW", "WILL", "LIVE", "STACIE", "SEBA"] },
+  { nombre: "Get Growing",                  desc: "", fechaInicio: "2026-05-24", semanas: 4, predicadores: ["AW", "LIVE", "WILL", "SEBA"] },
+  { nombre: "Jesús en Movimiento 2",        desc: "", fechaInicio: "2026-06-21", semanas: 4, predicadores: ["LIVE", "AW", "WILL", "SEBA"] },
+  { nombre: "Off the Shelf",                desc: "", fechaInicio: "2026-07-19", semanas: 4, predicadores: ["LIVE", "ESTEBAN", "WILL", "SEBA"] },
+  { nombre: "Relationship Series",          desc: "", fechaInicio: "2026-08-16", semanas: 4, predicadores: [] },
+  { nombre: "Small Group Emphasis",         desc: "", fechaInicio: "2026-09-13", semanas: 1, predicadores: [] },
+  { nombre: "Stronger Homes",               desc: "", fechaInicio: "2026-09-20", semanas: 4, predicadores: [] },
+  { nombre: "Jesús en Movimiento 3",        desc: "", fechaInicio: "2026-10-18", semanas: 5, predicadores: [] },
+  { nombre: "Dream Now",                    desc: "", fechaInicio: "2026-11-22", semanas: 1, predicadores: [] },
+  { nombre: "Stand Alone",                  desc: "", fechaInicio: "2026-11-29", semanas: 1, predicadores: [] },
+  { nombre: "Navidad",                      desc: "", fechaInicio: "2026-12-06", semanas: 3, predicadores: [] },
+];
+

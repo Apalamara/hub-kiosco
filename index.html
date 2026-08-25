@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<!-- Sin maximum-scale ni user-scalable=no: bloquear el pinch-zoom tiene sentido
+     en un iPad de kiosco, pero la misma URL se abre desde el telefono y ahi
+     dejar a alguien sin poder agrandar el texto es un problema de verdad. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Hub - Saddleback Buenos Aires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<!-- ==================== HOME ==================== -->
+<div class="pantalla activa" id="p-home">
+  <!-- Arriba solo la iglesia. El Hub firma al pie: es quien organiza esto, no
+       quien lo encabeza, y una firma va al final. Estando los dos logos
+       arriba se repartian la atencion en el primer golpe de vista, que es
+       justo donde tiene que ganar Saddleback. -->
+  <header class="cabecera">
+    <div class="cabecera-iglesia">
+      <img class="logo-saddleback" src="img/saddleback.svg" alt="Saddleback Church" width="542" height="90">
+      <span class="campus display">Buenos Aires</span>
+    </div>
+  </header>
+
+  <!-- Sin lema. Arriba queda el logo centrado y, debajo, cuando y donde se
+       junta esta iglesia. Nada mas: lo que sigue —la actividad y los seis
+       caminos— es lo que alguien vino a tocar. -->
+  <div class="intro">
+    <p class="domingos" id="domingos"></p>
+  </div>
+
+  <!-- El hero dejo de ser un boton para ser el contenedor de dos: la
+       actividad, que lleva a su pantalla, y "ver todas", que era una caja
+       aparte abajo. Un boton no puede tener otro adentro, asi que la tarjeta
+       es un div y cada mitad es su propio boton. -->
+  <div class="hero" id="hero"></div>
+
+  <div class="contenido">
+    <div class="caminos" id="caminos"></div>
+  </div>
+
+  <!-- La firma. Como .contenido crece (flex:1), el pie queda apoyado abajo
+       de la pantalla y no colgando debajo de la ultima fila. -->
+  <footer class="pie">
+    <img class="logo-hub" src="img/hub.png" alt="El Hub" width="256" height="256">
+  </footer>
+</div>
+
+<!-- TEMPORAL: comparador de los dos estilos de los caminos.
+     Esto NO va en el kiosco. Es para elegir entre los paneles de color y las
+     filas blancas mirandolas, no imaginandolas. Cuando este decidido se borra
+     este boton y el bloque "TEMPORAL" del final de estilo.css, y el estilo
+     que gane queda como el unico. -->
+<button class="comparador" id="comparador" type="button">Ver filas blancas</button>
+
+<!-- ==================== PANTALLAS INTERNAS ==================== -->
+<!-- Se generan las ocho desde JS: siete caminos y el calendario. -->
+
+<script src="datos.js"></script>
+<script>
+// ============================================================
+//  EL HUB - kiosco para iPad vertical
+//  Los datos viven en datos.js. Aca solo esta el comportamiento.
+// ============================================================
+
+const MESES      = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const MESES_FULL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DIAS_CAB   = ['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
+const DIAS_SEM   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+function hoy() { return new Date(); }
+function parseFecha(s) { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+function mismoDia(a,b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function qr(url, size) {
+  size = size || 150;
+  return `<div class="qr"><img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=6&data=${encodeURIComponent(url)}"
+          alt="Codigo QR" width="${size}" height="${size}" loading="lazy"></div>`;
+}
+
+const FALTA = '<span class="falta">Falta definir</span>';
+
+// El id de la pantalla de un evento sale de su posicion en EVENTOS y no del
+// orden en que se lo muestra: la home y la lista de actividades filtran
+// distinto (la home no muestra lo de ayer, la lista si), asi que un indice
+// calculado sobre la lista filtrada apuntaria a otro evento desde cada lado.
+function idEvento(e) { return 'evento-' + EVENTOS.indexOf(e); }
+
+// Pictogramas dibujados para este proyecto: los glifos geometricos no
+// significan nada y una gota se entiende antes de leer "quiero bautizarme".
+// Trazo, no relleno, para que aguanten cualquier tamano.
+const ICONOS = {
+  // una puerta abierta con alguien entrando
+  puerta: '<path d="M14 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-6"/><path d="M10 12H3"/><path d="M6.5 8.5 3 12l3.5 3.5"/>',
+  // una gota de agua
+  gota: '<path d="M12 2.7c3.4 4 5.6 6.8 5.6 9.6a5.6 5.6 0 0 1-11.2 0c0-2.8 2.2-5.6 5.6-9.6Z"/><path d="M9.6 13.4a2.6 2.6 0 0 0 2 2.5"/>',
+  // tres personas
+  grupo: '<circle cx="9" cy="8.2" r="2.9"/><path d="M3.4 20.2a5.6 5.6 0 0 1 11.2 0"/><path d="M16.4 5.6a2.9 2.9 0 0 1 0 5.6"/><path d="M17.6 14.9a5.6 5.6 0 0 1 3 5.3"/>',
+  // dos manos sosteniendo algo
+  manos: '<path d="M12 6.4c1.3-1.7 4.3-1.4 4.3 1 0 1.9-2.7 3.7-4.3 5-1.6-1.3-4.3-3.1-4.3-5 0-2.4 3-2.7 4.3-1Z"/><path d="M3.6 14.2c1.6 0 2.6.8 3.5 1.7l1.6 1.6"/><path d="M20.4 14.2c-1.6 0-2.6.8-3.5 1.7l-1.6 1.6"/><path d="M3.6 14.2v6.2"/><path d="M20.4 14.2v6.2"/>',
+  // un calendario
+  calendario: '<rect x="3.2" y="5.2" width="17.6" height="15.6" rx="2.2"/><path d="M3.2 10.2h17.6"/><path d="M8 3.2v3.4"/><path d="M16 3.2v3.4"/><circle cx="8.6" cy="14.4" r="1.1"/>',
+  // un brote: tallo y dos hojas. Crecer se entiende antes de leerlo.
+  brote: '<path d="M12 21v-9.4"/><path d="M11.7 12C9 12 6.8 9.8 6.8 7.1c2.7 0 4.9 2.2 4.9 4.9Z"/><path d="M12.3 14.7c0-2.7 2.2-4.9 4.9-4.9 0 2.7-2.2 4.9-4.9 4.9Z"/>',
+  // un corazon sostenido por una mano
+  corazon: '<path d="M12 8.1c1.4-2.1 4.9-1.7 4.9 1.1 0 2.2-3 4.3-4.9 5.8-1.9-1.5-4.9-3.6-4.9-5.8 0-2.8 3.5-3.2 4.9-1.1Z"/><path d="M4.5 17.4a10.5 10.5 0 0 0 15 0"/>',
+};
+
+function icono(nombre) {
+  return `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONOS[nombre] || ''}</svg>`;
+}
+
+// ---------- NAVEGACION ----------
+function abrir(id) {
+  document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+  const p = document.getElementById('p-' + id);
+  (p || document.getElementById('p-home')).classList.add('activa');
+  window.scrollTo(0, 0);
+  reiniciarInactividad();
+}
+function volverHome() { abrir('home'); }
+
+// A la pantalla de un evento se llega desde dos lados: el hero de la home y la
+// lista de actividades. El boton de atras tiene que devolver a donde estabas,
+// asi que se recuerda de donde se entro en vez de mandar siempre al mismo lado.
+let origenEvento = 'home';
+
+function abrirEvento(id, desde) {
+  origenEvento = desde;
+  const p = document.getElementById('p-' + id);
+  const boton = p && p.querySelector('.volver');
+  if (boton) {
+    boton.innerHTML = '<span>&lsaquo;</span> '
+      + (desde === 'home' ? 'Volver al inicio' : 'Volver a las actividades');
+  }
+  abrir(id);
+}
+
+function volverAlOrigen() { abrir(origenEvento); }
+
+// El kiosco vuelve solo al inicio: el que llega tiene que encontrar la
+// home, no la pantalla en la que quedo el anterior.
+const INACTIVIDAD_MS = 90000;
+let timerInactividad;
+function reiniciarInactividad() {
+  clearTimeout(timerInactividad);
+  timerInactividad = setTimeout(() => {
+    if (!document.getElementById('p-home').classList.contains('activa')) volverHome();
+  }, INACTIVIDAD_MS);
+}
+['touchstart','click','keydown'].forEach(ev =>
+  document.addEventListener(ev, reiniciarInactividad, { passive: true }));
+
+// ---------- HOME ----------
+function renderHome() {
+  document.getElementById('caminos').innerHTML = CAMINOS.map(c => {
+    // El color es el placeholder de la foto: cuando "foto" tenga una ruta,
+    // la imagen se apoya sobre el mismo panel y el color queda debajo.
+    const panel = c.foto
+      ? `background-color:${c.color};background-image:url('${esc(c.foto)}')`
+      : `background-color:${c.color}`;
+    return `
+    <button class="camino" onclick="abrir('${c.id}')">
+      <span class="camino-panel" style="${panel}">${c.foto ? '' : icono(c.icono)}</span>
+      <span class="camino-texto">
+        <span class="camino-titulo">${esc(c.titulo)}</span>
+        <span class="camino-sub">${esc(c.sub)}</span>
+      </span>
+      <span class="camino-flecha">&rsaquo;</span>
+    </button>`;
+  }).join('');
+
+  renderHero();
+}
+
+// El hero es una sola cosa: la actividad que se viene, con su foto. La
+// reunion de los domingos salio de aca a su propia franja: ponerlas en la
+// misma linea hacia que se leyeran como lo mismo, y no lo son.
+function renderHero() {
+  const ahora = hoy(); ahora.setHours(0,0,0,0);
+  const proximos = EVENTOS
+    .filter(e => parseFecha(e.fecha) >= ahora)
+    .sort((a,b) => parseFecha(a.fecha) - parseFecha(b.fecha));
+
+  const el = document.getElementById('hero');
+
+  // Sin nada cargado la tarjeta no es un carrusel, es un cartel. Sigue
+  // teniendo el atajo abajo: que no haya nada esta semana es justamente
+  // cuando alguien quiere ver el resto.
+  if (!proximos.length) {
+    el.innerHTML = `
+      <div class="hero-track">
+        <div class="hero-actividad-btn hero-inerte">
+          <span class="hero-foto hero-foto-vacia"><span class="hero-foto-nota">Falta foto</span></span>
+          <span class="hero-actividad">
+            <span class="hero-etiqueta">Próxima actividad</span>
+            <span class="hero-que">Todavía sin fecha</span>
+            <span class="hero-detalle">Mirá todas las actividades</span>
+          </span>
+        </div>
+      </div>` + heroTodas();
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="hero-track" id="hero-track">
+      ${proximos.map((e, i) => diapositiva(e, i, ahora)).join('')}
+    </div>
+    ${proximos.length > 1 ? puntos(proximos.length) : ''}`
+    + heroTodas();
+
+  proximos.forEach((e, i) => {
+    document.getElementById('hero-slide-' + i).onclick = () => abrirEvento(idEvento(e), 'home');
+  });
+  if (proximos.length > 1) seguirCarrusel(proximos.length);
+}
+
+// Una diapositiva del carrusel: el flyer y, al lado, que es y cuando.
+function diapositiva(e, i, ahora) {
+  // La imagen es lo que le da calidez a una tarjeta que si no es tipografia
+  // sobre negro. Si el evento tiene flyer se usa ese, que es la imagen mas
+  // pertinente que puede haber y no hay que mantener nada aparte. Va en una
+  // variable CSS porque el recuadro la usa dos veces: de fondo recortada y
+  // borrosa, y encima entera.
+  const ruta = e.flyer || FOTOS.hero;
+  const foto = ruta
+    ? `<span class="hero-foto" style="--flyer:url('${esc(ruta)}')"></span>`
+    : `<span class="hero-foto hero-foto-vacia"><span class="hero-foto-nota">Falta foto</span></span>`;
+
+  const d = parseFecha(e.fecha);
+  const dias = Math.round((d - ahora) / 864e5);
+  // El numero del dia va siempre, aunque sea esta semana. Decia solo
+  // "Sábado" y en un kiosco eso no alcanza: el que lo lee un lunes no sabe si
+  // es el sabado que viene o el otro, y con la fecha delante no tiene que
+  // hacer la cuenta. El mes se agrega recien cuando falta mas de una semana,
+  // que es cuando "29" solo deja de ubicar.
+  const cuando = dias === 0 ? 'Hoy' : dias === 1 ? 'Mañana'
+    : dias < 7 ? `${DIAS_SEM[d.getDay()]} ${d.getDate()}`
+    : `${DIAS_SEM[d.getDay()]} ${d.getDate()} de ${MESES_FULL[d.getMonth()].toLowerCase()}`;
+
+  // "Próxima actividad" solo en la primera: en las demas seria mentira, son
+  // las que vienen despues.
+  const etiqueta = i === 0 ? 'Próxima actividad' : 'También se viene';
+
+  return `<button class="hero-actividad-btn" type="button" id="hero-slide-${i}">
+      ${foto}
+      <span class="hero-actividad">
+        <span class="hero-etiqueta">${etiqueta}</span>
+        <span class="hero-que">${esc(e.nombre)}</span>
+        <span class="hero-detalle"><span class="hero-cuando">${esc(cuando)}</span>${e.horario ? ' &middot; ' + esc(e.horario) : ''}</span>
+      </span>
+    </button>`;
+}
+
+function heroTodas() {
+  return `<button class="hero-todas" type="button" onclick="abrir('actividades')">
+      <span>Ver todas las actividades</span>
+      <span class="hero-todas-flecha">&rsaquo;</span>
+    </button>`;
+}
+
+// Los puntos. No son decoracion: sin ellos nada avisa que hay mas de una
+// actividad, y un carrusel que no se mueve solo y no se anuncia es una
+// actividad sola con espacio de sobra al costado.
+function puntos(n) {
+  return '<div class="hero-puntos" id="hero-puntos">'
+    + Array.from({length: n}, (_, i) =>
+        `<button class="hero-punto${i === 0 ? ' activo' : ''}" type="button"
+                 aria-label="Actividad ${i+1} de ${n}" data-i="${i}"></button>`).join('')
+    + '</div>';
+}
+
+// El carrusel se mueve deslizando y nada mas: no rota solo. Esto solo mantiene
+// los puntos al dia con lo que se esta viendo, y los hace servir de atajo para
+// el que lo abre en la compu, donde deslizar de costado no es natural.
+function seguirCarrusel(n) {
+  const track = document.getElementById('hero-track');
+  const marcas = [...document.querySelectorAll('#hero-puntos .hero-punto')];
+
+  const marcar = () => {
+    const i = Math.round(track.scrollLeft / track.clientWidth);
+    marcas.forEach((p, j) => p.classList.toggle('activo', j === i));
+  };
+  track.addEventListener('scroll', marcar, { passive: true });
+  marcas.forEach(p => {
+    p.onclick = () => track.scrollTo({ left: track.clientWidth * (+p.dataset.i), behavior: 'smooth' });
+  });
+}
+
+// Los domingos: una sola frase gris debajo del lema, como la bajada de un
+// titulo. Tenia volantita propia ("REUNIÓN DE LOS DOMINGOS"), horario en
+// display y direccion en una tercera linea: tres niveles tipograficos para un
+// dato que se dice en un renglon. "Domingos" adelante ya dice todo lo que
+// decia la volantita, asi que la volantita sobra.
+function renderDomingos() {
+  const partes = ['Domingos ' + REUNIONES.horas.map(esc).join(' &middot; '), esc(REUNIONES.lugar)];
+  document.getElementById('domingos').innerHTML = partes.join(' &middot; ');
+}
+
+// ---------- ARMADO DE PANTALLAS ----------
+// "volverA" es a donde lleva el boton de atras: 'home' por defecto, el id de
+// otra pantalla, o 'origen' para las pantallas a las que se puede llegar desde
+// mas de un lado, que devuelven a donde estabas.
+function pantalla(id, titulo, bajada, cuerpo, volverA) {
+  const destino = volverA || 'home';
+  const alOrigen = destino === 'origen';
+  const etiqueta = (alOrigen || destino === 'home')
+    ? 'Volver al inicio' : 'Volver a las actividades';
+  const accion = alOrigen ? 'volverAlOrigen()' : `abrir('${destino}')`;
+  const div = document.createElement('div');
+  div.className = 'pantalla';
+  div.id = 'p-' + id;
+  div.innerHTML = `
+    <div class="contenido" style="padding-top:28px">
+      <button class="volver" onclick="${accion}"><span>&lsaquo;</span> ${etiqueta}</button>
+      <h1 class="titulo-pantalla">${esc(titulo)}</h1>
+      ${bajada ? `<p class="bajada">${bajada}</p>` : ''}
+      ${cuerpo}
+    </div>`;
+  document.body.appendChild(div);
+}
+
+// El modulo calido que abre una pantalla: foto grande a la izquierda,
+// titulo y parrafos a la derecha. Es el patron del modulo de bautismo de
+// saddleback.com. Donde la web pone un boton azul, el kiosco pone el QR:
+// es lo unico que un iPad le puede pasar a alguien.
+//
+// La clave es el id del camino, asi que el modulo saca el texto de TEXTOS,
+// la foto de FOTOS y el pictograma de CAMINOS sin que haya que repetir nada.
+function modulo(clave, accionHTML) {
+  const t = TEXTOS[clave] || {};
+  const camino = CAMINOS.find(c => c.id === clave) || {};
+  const ruta = FOTOS[clave];
+
+  const foto = ruta
+    ? `<div class="modulo-foto" style="background-image:url('${esc(ruta)}')"></div>`
+    : `<div class="modulo-foto modulo-foto-vacia">
+         ${icono(camino.icono)}
+         <span class="modulo-foto-nota">Falta foto</span>
+       </div>`;
+
+  return `<div class="modulo">
+    ${foto}
+    <div class="modulo-texto">
+      ${t.titulo ? `<h2 class="modulo-titulo">${esc(t.titulo)}</h2>` : ''}
+      <div class="modulo-cuerpo">${(t.parrafos || []).map(p => `<p>${esc(p)}</p>`).join('')}</div>
+      ${accionHTML || ''}
+    </div>
+  </div>`;
+}
+
+// Un dato suelto de un evento: la etiqueta y el valor. Si el valor no esta,
+// entra el hueco marcado en vez de desaparecer la celda: que falte la
+// direccion es informacion, que no aparezca la fila es un misterio.
+function dato(label, valorHTML) {
+  return `<div class="dato">
+    <div class="dato-label">${esc(label)}</div>
+    <div class="dato-valor">${valorHTML}</div>
+  </div>`;
+}
+
+// Como se lee el campo "inscripcion". Los cuatro estados dicen cosas
+// distintas y da igual meterlos en un booleano: "no hace falta" invita,
+// "no sabemos" avisa, y "hay que anotarse sin link" es un pendiente nuestro.
+function textoInscripcion(e) {
+  if (typeof e.inscripcion === 'string' && e.inscripcion) return 'Hay que anotarse';
+  if (e.inscripcion === true) return 'Hay que anotarse';
+  if (e.inscripcion === false) return 'No hace falta. Venís y ya.';
+  return FALTA;
+}
+
+// "Del viernes 4 al domingo 6 de septiembre" cuando dura varios dias, y
+// "Sábado 29 de agosto" cuando es uno solo. Si el rango cruza de mes, los
+// dos meses se nombran.
+function fechaLegible(e) {
+  const d = parseFecha(e.fecha);
+  const dia = f => `${DIAS_SEM[f.getDay()].toLowerCase()} ${f.getDate()}`;
+  const mes = f => MESES_FULL[f.getMonth()].toLowerCase();
+
+  if (!e.fechaFin) {
+    return `${DIAS_SEM[d.getDay()]} ${d.getDate()} de ${mes(d)}`;
+  }
+  const f = parseFecha(e.fechaFin);
+  return d.getMonth() === f.getMonth()
+    ? `Del ${dia(d)} al ${dia(f)} de ${mes(f)}`
+    : `Del ${dia(d)} de ${mes(d)} al ${dia(f)} de ${mes(f)}`;
+}
+
+// La pantalla de un evento: el flyer entero, la descripcion, y los datos que
+// alguien necesita para decidir si va.
+function pantallaEvento(e) {
+  const cuando = fechaLegible(e);
+  const url = typeof e.inscripcion === 'string' ? e.inscripcion : '';
+
+  const cabecera = `<div class="evento-detalle">
+    ${e.flyer ? `<div class="evento-detalle-flyer">
+        <img src="${esc(e.flyer)}" alt="Flyer de ${esc(e.nombre)}" loading="lazy">
+      </div>` : ''}
+    <div class="evento-detalle-texto">
+      <div class="evento-nombre">${esc(e.nombre)}</div>
+      <div class="evento-tipo">${esc(e.tipo)}${e.comunidad ? ' &middot; ' + esc(e.comunidad) : ''}</div>
+      <div class="evento-desc">${e.descripcion ? esc(e.descripcion) : FALTA + ' de qué se trata'}</div>
+    </div>
+  </div>`;
+
+  const datos = `<div class="datos">
+    ${dato('Cuándo', esc(cuando) + (e.horario ? `<span class="dato-extra">${esc(e.horario)}</span>` : ''))}
+    ${dato('Dónde', e.lugar ? esc(e.lugar) : FALTA)}
+    ${e.costo ? dato('Costo', esc(e.costo)) : ''}
+    ${dato('Inscripción', textoInscripcion(e))}
+  </div>`;
+
+  // Lo que incluye el costo va debajo y no en la celda: es lo que justifica
+  // el numero, y adentro de la celda lo tapaba.
+  const incluye = e.incluye ? `<p class="evento-nota">${esc(e.incluye)}</p>` : '';
+
+  // Si hay que anotarse pero todavia no tenemos el formulario, el QR cae al
+  // Linktree y se marca el hueco: mejor que un codigo que no lleva a nada.
+  const accion = e.inscripcion
+    ? accionQR('Anotate',
+        url || FORMS.linktree,
+        url ? 'Escaneá el código con tu celular' : 'Por ahora el código lleva al Linktree')
+      + (url ? '' : `<div class="evento-nota">${FALTA} link del formulario</div>`)
+    : '';
+
+  const contacto = e.contacto
+    ? `<p class="evento-contacto">Consultas: ${esc(e.contacto)}</p>` : '';
+
+  pantalla(idEvento(e), 'Actividad', '',
+    cabecera + datos + incluye + accion + contacto, 'origen');
+}
+
+// La accion del modulo: el QR con lo que hay que hacer al lado.
+function accionQR(titulo, url, nota) {
+  return `<div class="accion">
+    ${qr(url, 104)}
+    <div>
+      <div class="accion-titulo">${esc(titulo)}</div>
+      <div class="accion-nota">${esc(nota)}</div>
+    </div>
+  </div>`;
+}
+
+function destacado(label, titulo, texto) {
+  return `<div class="destacado">
+    <div class="destacado-label">${esc(label)}</div>
+    <div class="destacado-titulo">${esc(titulo)}</div>
+    <div class="destacado-texto">${texto}</div>
+  </div>`;
+}
+
+// Mientras no exista el formulario de Activa, el QR del Linktree ocupa su
+// lugar: es la diferencia entre "todavia no esta" y "esta roto".
+function bloqueActiva(numeros, texto) {
+  const url = FORMS.activa || FORMS.linktree;
+  const aviso = FORMS.activa ? '' : `<div style="margin-top:14px">${FALTA} formulario de Activa</div>`;
+  return destacado('Primer paso', 'Activa ' + numeros, esc(texto) + aviso)
+       + `<div class="tarjeta" style="margin-bottom:28px">
+            <div class="tarjeta-titulo">${FORMS.activa ? 'Anotate' : 'Mientras tanto, toda la info acá'}</div>
+            <div class="tarjeta-meta" style="margin-bottom:14px">Escaneá el código con tu celular</div>
+            ${qr(url, 160)}
+          </div>`;
+}
+
+// Los pasos van numerados y no como tarjetas iguales: el numero es lo que
+// convierte tres opciones en un camino. El que llega no tiene que elegir,
+// tiene que saber por donde arranca.
+function pasos(lista) {
+  return '<ol class="pasos">' + lista.map((p, i) => `
+    <li class="paso">
+      <span class="paso-num">${i + 1}</span>
+      <span class="paso-cuerpo">
+        <span class="paso-cab">
+          <span class="paso-nombre">${esc(p.nombre)}</span>
+          ${p.cuando ? `<span class="paso-cuando">${esc(p.cuando)}</span>` : ''}
+        </span>
+        <span class="paso-desc">${esc(p.texto)}</span>
+      </span>
+    </li>`).join('') + '</ol>';
+}
+
+// Las preguntas van despues de los pasos, a lo ancho y en dos columnas: son
+// las que alguien se hace justo antes de decidir si viene, asi que tienen que
+// entrar de un vistazo y no obligar a scrollear.
+function preguntas(lista) {
+  return `<aside class="preguntas">
+    <div class="preguntas-titulo">Antes de venir</div>
+    <div class="preguntas-grilla">
+      ${lista.map(q => `<div>
+        <div class="pregunta-p">${esc(q.p)}</div>
+        <div class="pregunta-r">${esc(q.r)}</div>
+      </div>`).join('')}
+    </div>
+  </aside>`;
+}
+
+// El canal de difusion cierra la pantalla: no es un paso mas, es como se
+// enteran de todo lo demas cuando ya no estan parados frente al iPad.
+function bloqueCanal() {
+  const hay = !!CANALES.whatsapp;
+  return `<div class="canal">
+    ${qr(hay ? CANALES.whatsapp : FORMS.linktree, 104)}
+    <div>
+      <div class="canal-titulo">Sumate al canal de WhatsApp</div>
+      <div class="canal-texto">Los avisos de la iglesia te llegan al teléfono. No es un grupo: no se te llena de mensajes.</div>
+      <div class="canal-nota">${hay
+        ? 'Escaneá el código y te sumás'
+        : 'Por ahora el código lleva al Linktree &middot; ' + FALTA + ' link del canal'}</div>
+    </div>
+  </div>`;
+}
+
+// El campo "status" de RECURRENTES estaba sin usar: una actividad en pausa se
+// mostraba igual que una que esta corriendo. En un kiosco eso es peor que no
+// mostrarla, porque alguien va y no hay nadie. Ahora se avisa.
+function tarjetasRecurrentes(filtro) {
+  const items = RECURRENTES.filter(filtro);
+  if (!items.length) return '<div class="vacio">Todavía no hay nada cargado acá.</div>';
+  return '<div class="lista">' + items.map(r => {
+    const pausado = r.status && r.status.toLowerCase() !== 'ongoing';
+    return `
+    <div class="tarjeta${pausado ? ' tarjeta-pausada' : ''}">
+      <div class="tarjeta-cab">
+        <div class="tarjeta-titulo">${esc(r.nombre)}</div>
+        ${pausado ? '<span class="pausado">En pausa</span>' : ''}
+      </div>
+      <div class="tarjeta-meta">
+        <span>${esc(r.dia)}</span>
+        <span>${esc(r.horario)}</span>
+        <span>${esc(r.lugar)}</span>
+      </div>
+      ${r.descripcion ? `<div class="tarjeta-texto">${esc(r.descripcion)}</div>` : ''}
+      ${r.contacto ? `<div class="tarjeta-contacto">Hablá con ${esc(r.contacto)}</div>` : ''}
+    </div>`;
+  }).join('') + '</div>';
+}
+
+// ---------- LOS SEIS CAMINOS ----------
+function construirPantallas() {
+
+  // 1. SOY NUEVO
+  // El bloque negro de Activa se fue: arranca el modulo calido, despues la
+  // secuencia (desayuno, Activa 1, Activa 2) y al final el canal.
+  pantalla('nuevo', 'Soy nuevo en Saddleback', '',
+    modulo('nuevo', accionQR(
+      TEXTOS.nuevo.accion,
+      FORMS.activa || FORMS.linktree,
+      FORMS.activa ? 'Escaneá el código con tu celular' : 'Por ahora el código lleva al Linktree'))
+    + '<h2 class="subtitulo">Los primeros pasos</h2>'
+    + pasos(PASOS_NUEVO)
+    + preguntas(PREGUNTAS_NUEVO)
+    + bloqueCanal());
+
+  // 2. BAUTISMO
+  // La bajada se fue: el modulo ya dice de que se trata, y mejor.
+  pantalla('bautismo', 'Quiero bautizarme', '',
+    modulo('bautismo',
+      accionQR(TEXTOS.bautismo.accion, FORMS.bautismo, 'Escaneá el código con tu celular'))
+    + '<h2 class="subtitulo">Las fechas</h2>'
+    + tarjetasRecurrentes(r => /bautismo/i.test(r.nombre)));
+
+  // 3. ENCONTRAR MI COMUNIDAD
+  const coms = COMUNIDADES_LINKS.filter(c => !c.esHero);
+  pantalla('comunidad', 'Encontrar mi comunidad',
+    'Grupos por edad y por etapa de la vida. Buscá el tuyo.',
+    '<div class="grilla">' + coms.map(c => {
+      const canal = c.whatsapp ? 'https://wa.me/' + c.whatsapp
+                  : c.instagram ? 'https://instagram.com/' + c.instagram
+                  : c.linktree || '';
+      const etiqueta = c.whatsapp ? 'WhatsApp' : c.instagram ? 'Instagram' : c.linktree ? 'Más info' : '';
+      const lider = (!c.lider || c.lider.indexOf('?') >= 0) ? FALTA + ' referente' : esc(c.lider);
+      return `<div class="tarjeta">
+        <div class="tarjeta-titulo">${esc(c.nombre)}</div>
+        <div class="tarjeta-meta"><span>${esc(c.rango)}</span><span>${lider}</span></div>
+        ${canal
+          ? `<div class="tarjeta-texto" style="margin-bottom:10px">${etiqueta}</div>${qr(canal, 118)}`
+          : `<div class="tarjeta-texto" style="margin-top:12px">${FALTA} dónde pedir más info</div>`}
+      </div>`;
+    }).join('') + '</div>');
+
+  // QUIERO CRECER
+  // El orden en pantalla no lo decide este archivo sino CAMINOS en datos.js:
+  // aca las pantallas se arman en cualquier orden y despues se muestran segun
+  // ese array.
+  pantalla('crecer', 'Quiero crecer en mi fe', '',
+    modulo('crecer', accionQR(
+      TEXTOS.crecer.accion,
+      FORMS.crecimiento || FORMS.linktree,
+      FORMS.crecimiento ? 'Escaneá el código con tu celular' : 'Por ahora el código lleva al Linktree'))
+    + '<h2 class="subtitulo">Los dos caminos</h2>'
+    + tarjetasRecurrentes(r => r.comunidad === 'C.Esp.'));
+
+  // 5. QUIERO SERVIR
+  pantalla('servir', 'Quiero servir',
+    'Antes de sumarte a un equipo, descubrí para qué estás hecho.',
+    bloqueActiva('3', 'Descubrí tu forma: en qué sos bueno, qué te mueve y dónde encaja eso en la iglesia.')
+    + '<h2 class="titulo-pantalla" style="font-size:1.3rem;margin:34px 0 16px">Las áreas</h2>'
+    + '<div class="grilla">' + AREAS.map(a => `
+        <div class="tarjeta">
+          <div class="tarjeta-titulo">${esc(a.nombre)}</div>
+          <div class="tarjeta-meta"><span>${esc(a.referente)}</span></div>
+          <div class="tarjeta-texto">${a.que ? esc(a.que) : FALTA + ' qué hace'}</div>
+        </div>`).join('') + '</div>');
+
+  // 6. ACTIVIDADES
+  const ahora = hoy(); ahora.setHours(0,0,0,0);
+  const proximos = EVENTOS
+    .filter(e => parseFecha(e.fecha) >= new Date(ahora.getTime() - 864e5))
+    .sort((a,b) => parseFecha(a.fecha) - parseFecha(b.fecha));
+  pantalla('actividades', 'Actividades',
+    'Tocá una para ver de qué se trata, el horario y si hay que anotarse.',
+    proximos.length
+      ? '<div class="lista">' + proximos.map(e => {
+          const d = parseFecha(e.fecha);
+          // Aca el flyer se muestra entero y no recortado: es la pantalla
+          // donde alguien viene a mirar que hay, y un flyer es un afiche que
+          // solo funciona cuando se lee.
+          return `<button class="tarjeta tarjeta-evento" onclick="abrirEvento('${idEvento(e)}', 'actividades')">
+            <span class="fecha">
+              <span class="fecha-dia">${d.getDate()}</span>
+              <span class="fecha-mes">${MESES[d.getMonth()]}</span>
+            </span>
+            <span class="evento-texto">
+              <span class="tarjeta-titulo">${esc(e.nombre)}</span>
+              <span class="tarjeta-meta">
+                <span>${esc(e.tipo)}</span>
+                ${e.horario ? `<span>${esc(e.horario)}</span>` : ''}
+                <span>${esc(e.comunidad)}</span>
+              </span>
+            </span>
+            ${e.flyer ? `<span class="evento-flyer">
+              <img src="${esc(e.flyer)}" alt="Flyer de ${esc(e.nombre)}" loading="lazy">
+            </span>` : ''}
+            <span class="camino-flecha">&rsaquo;</span>
+          </button>`;
+        }).join('') + '</div>'
+      : '<div class="vacio">No hay encuentros cargados.</div>');
+
+  // Una pantalla por evento. Se generan para todos y no solo para los
+  // proximos: el hero de la home entra por el mismo id, y filtrar distinto
+  // en cada lado es como se rompen estas cosas.
+  EVENTOS.forEach(pantallaEvento);
+
+  // 7. ACOMPANAMIENTO
+  pantalla('acompanamiento', 'Acompañamiento',
+    'Espacios para cuando estás pasando algo difícil. No hace falta anotarse: venís y ya.',
+    tarjetasRecurrentes(r => r.comunidad === 'CR' || /oraci[oó]n/i.test(r.nombre)));
+
+  // CALENDARIO
+  // OJO: hoy no se llega desde ningun lado. Tenia un link al pie y se saco.
+  // La pantalla se sigue armando para no perder el trabajo, pero mientras no
+  // haya como entrar, es codigo muerto: o vuelve un acceso, o se borra.
+  pantalla('calendario', 'Calendario', '',
+    `<div class="cal-nav">
+       <button class="cal-nav-btn" onclick="calMover(-1)">&lsaquo;</button>
+       <div class="cal-nav-titulo" id="cal-titulo"></div>
+       <button class="cal-nav-btn" onclick="calMover(1)">&rsaquo;</button>
+     </div>
+     <div class="cal-grid" id="cal-grid"></div>`);
+}
+
+// ---------- CALENDARIO ----------
+let calAnio = hoy().getFullYear();
+let calMes  = hoy().getMonth();
+
+function calMover(delta) {
+  calMes += delta;
+  if (calMes < 0) { calMes = 11; calAnio--; }
+  if (calMes > 11) { calMes = 0; calAnio++; }
+  renderCalendario();
+}
+
+function serieDe(fecha) {
+  for (const s of SERIES) {
+    const ini = parseFecha(s.fechaInicio);
+    const fin = new Date(ini); fin.setDate(ini.getDate() + s.semanas * 7 - 1);
+    if (fecha >= ini && fecha <= fin && fecha.getDay() === 0) return s.nombre;
+  }
+  return null;
+}
+
+function renderCalendario() {
+  const titulo = document.getElementById('cal-titulo');
+  const grid = document.getElementById('cal-grid');
+  if (!titulo || !grid) return;
+
+  titulo.textContent = MESES_FULL[calMes] + ' ' + calAnio;
+
+  const primero = new Date(calAnio, calMes, 1);
+  const arranque = new Date(primero);
+  arranque.setDate(1 - primero.getDay());
+  const ahora = hoy();
+
+  let html = DIAS_CAB.map(d => `<div class="cal-dia-cab">${d}</div>`).join('');
+
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(arranque);
+    d.setDate(arranque.getDate() + i);
+    const otroMes = d.getMonth() !== calMes;
+    const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+    const serie = serieDe(d);
+    const eventos = EVENTOS.filter(e => e.fecha === iso);
+
+    html += `<div class="cal-dia ${otroMes ? 'otro-mes' : ''} ${mismoDia(d, ahora) ? 'hoy' : ''}">
+      <div class="cal-num">${d.getDate()}</div>
+      ${serie ? `<span class="cal-serie" title="${esc(serie)}">${esc(serie)}</span>` : ''}
+      ${eventos.map(e => `<span class="cal-pill" style="background:#1980cc" title="${esc(e.nombre)}">${esc(e.nombre)}</span>`).join('')}
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+// TEMPORAL: el comparador de estilos de los caminos.
+// Se acuerda de la eleccion para que refrescar la pagina no la pierda, que
+// es lo que pasa mirando esto: se refresca cada dos minutos. Se borra junto
+// con el boton y el bloque TEMPORAL de estilo.css cuando este decidido.
+(function comparador() {
+  const btn = document.getElementById('comparador');
+  const guardado = localStorage.getItem('hub-caminos');
+  const pintar = filas => {
+    document.body.classList.toggle('caminos-filas', filas);
+    btn.textContent = filas ? 'Ver paneles de color' : 'Ver filas blancas';
+  };
+  pintar(location.search.includes('filas') || guardado === 'filas');
+  btn.onclick = () => {
+    const filas = !document.body.classList.contains('caminos-filas');
+    localStorage.setItem('hub-caminos', filas ? 'filas' : 'paneles');
+    pintar(filas);
+  };
+})();
+
+// ---------- INIT ----------
+renderHome();
+renderDomingos();
+construirPantallas();
+renderCalendario();
+reiniciarInactividad();
+</script>
+</body>
+</html>
