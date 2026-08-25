@@ -54,11 +54,50 @@ const PASOS_NUEVO = [
     nombre: "Activa 1",
     cuando: "Una hora",
     texto: "De qué se trata Saddleback, en qué creemos y cómo se conecta tu historia con la de la iglesia.",
+    // "form" es una clave de FORMS. El paso muestra siempre como anotarse:
+    // Activa no tiene fecha, asi que si no queda una forma de dejar los datos,
+    // el que se entusiasma en el kiosco no tiene que hacer y se va.
+    //
+    // Mientras FORMS.activa este vacio se ve el hueco marcado en vez de un QR
+    // que no lleva a ningun lado. Cuando llegue el link, se pega ahi y el
+    // paso se enciende solo.
+    form: "activa",
+    formAccion: "Anotate en Activa",
+  },
+];
+
+
+// --- LAS PREGUNTAS DEL BAUTISMO ---
+// Reemplazan a la seccion "Las fechas", que prometia fechas y mostraba dos
+// tarjetas diciendo "a coordinar": un horario sin dia no le sirve a nadie, y
+// las dos tarjetas se diferenciaban en una linea.
+//
+// Todo lo que dicen sale de lo que ya estaba cargado: los datos de las dos
+// entradas de bautismo en RECURRENTES y el texto de TEXTOS.bautismo. No hay
+// nada inventado aca.
+const PREGUNTAS_BAUTISMO = [
+  {
+    p: "¿Cuándo son los bautismos?",
+    r: "Las fechas se van anunciando: no hay un día fijo. Cuando hay, son a las 17:00 y a las 19:00 en Mario Bravo 559. Dejanos tus datos y te avisamos de la próxima.",
+  },
+  {
+    p: "¿Tengo que anotarme?",
+    r: "Sí, y es lo único que tenés que hacer ahora. Completá el formulario de acá arriba y nos ponemos en contacto.",
+  },
+  {
+    p: "¿Qué tengo que llevar?",
+    r: "La remera, el short y la toalla te las damos nosotros. Vos traé a tu familia y a tus amigos, así celebramos juntos.",
+  },
+  {
+    p: "¿Y si es menor de 18?",
+    r: "También se bautizan, pero hay que coordinarlo antes con las responsables de Kids. Hablá con Geli o con Ceci.",
   },
 ];
 
 
 // --- LAS PREGUNTAS DE LOS QUE LLEGAN ---
+// OJO: hoy no se muestran en ningun lado. Estaban en "Soy nuevo" y se sacaron
+// porque repetian lo que ya dicen los pasos. Se dejan cargadas por si vuelven.
 // Las que frenan a alguien en la puerta. Salen de la pagina de Activate de
 // saddleback.com y de los datos de Buenos Aires. Sacar la excusa para no
 // venir sirve mas que explicar mejor de que se trata.
@@ -100,13 +139,23 @@ const REUNIONES = {
 
 
 // --- FOTOS ---
+// Cada foto puede ser una ruta suelta o { src, recorte: true }.
+//
+//   ruta suelta   La foto entra ENTERA en el panel y lo que sobra se rellena
+//                 con la misma imagen borroneada. Es lo seguro: no se pierde
+//                 nada. Se usa cuando la foto tiene texto adentro, como la
+//                 del frente: recortada quedaba "DDLEBACK CHUR".
+//   recorte true  La foto llena el panel y se recorta al medio. Se ve mucho
+//                 mejor cuando no hay nada que leer —caras, manos, una
+//                 escena— porque el panel es alto y una foto apaisada entera
+//                 deja mas desenfoque que foto.
 // El kiosco tiene un lugar reservado para foto en el hero. Mientras la ruta
 // este vacia queda un degrade calido con el cartel de "falta foto": no se ve
 // roto, se ve pendiente. Cuando haya foto de la gente de Buenos Aires, se
 // pone el archivo en output/fotos/ y se completa la ruta aca. Nada mas.
 const FOTOS = {
   hero: "",       // ej: "fotos/domingo.jpg"
-  bautismo: "",   // apaisada, gente abrazandose despues del bautismo
+  bautismo: { src: "fotos/bautismo-abrazo.jpg", recorte: true },
   nuevo: "fotos/frente-saddleback.jpg",   // el frente de Mario Bravo 559
   crecer: "",     // apaisada, dos personas charlando con un cafe, o un grupo
 };
@@ -116,7 +165,7 @@ const FOTOS = {
 // Es lo unico que alguien se lleva puesto del kiosco: la pantalla se apaga,
 // el telefono no. Mientras el link este vacio, el QR cae al Linktree.
 const CANALES = {
-  whatsapp: "",   // <-- link del canal de difusion de WhatsApp
+  whatsapp: "https://whatsapp.com/channel/0029VaHPFcH6LwHoZ5e83x2N",
 };
 
 

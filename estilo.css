@@ -30,6 +30,10 @@
   --warm-50: #f7f3ee;
   --warm-100: #ebe4da;
 
+  /* El azul del pie. Es el azul institucional de Saddleback en su version
+     oscura, el mismo del frente de Mario Bravo 559. */
+  --navy: #01325d;
+
   --radius: 24px;
   --radius-sm: 16px;
   --radius-xs: 8px;
@@ -43,7 +47,7 @@
      para un dedo. Asi entran los seis caminos, el hero y el pie en los 1080
      del iPad, con lugar de sobra.
      Un septimo camino obliga a replantear la home, no a seguir achicando. */
-  --fila-alto: 76px;
+  --fila-alto: 68px;
   --fila-gap: 12px;
 
   /* El ancho del aparato. El kiosco no es una web que se adapta a cualquier
@@ -95,7 +99,7 @@ body {
   .pantalla.activa { box-shadow: 0 0 0 1px var(--warm-100), 0 16px 46px rgba(0,0,0,0.06); }
 }
 
-.contenido { padding: 0 32px 10px; flex: 1; }
+.contenido { padding: 0 32px 34px; flex: 1; }
 
 /* ---------- CABECERA ---------- */
 /* Solo la iglesia, a la izquierda. El Hub firmaba aca al lado y se fue al
@@ -123,7 +127,7 @@ body {
    40px de alto y no 27: dentro del lockup el nombre ocupa como un tercio, asi
    que a 27 "SADDLEBACK CHURCH" quedaba mas chico que el lema de abajo y la
    iglesia se leia despues que su propia bajada. */
-.logo-saddleback { height: 40px; width: auto; display: block; }
+.logo-saddleback { height: 48px; width: auto; display: block; }
 /* El campus separado del logo por una linea: es una precision sobre la marca,
    no parte de ella, y meterlo adentro seria retocar un logo ajeno. */
 .campus {
@@ -147,15 +151,26 @@ body {
 
    Como .contenido crece (flex:1), el pie se apoya en el borde de abajo de la
    pantalla en vez de colgar pegado a la ultima fila. */
+/* Mismo fondo que la pantalla y una linea finita arriba. La franja azul
+   cerraba bien pero pesaba mas que el hero, que es lo unico oscuro que
+   deberia haber: dos bloques oscuros y la vista no sabe cual mira. La linea
+   alcanza para que el logo se lea como firma y no como algo que sobro. */
 .pie {
   display: flex;
-  justify-content: center;
-  padding: 4px 32px 16px;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 32px 24px;
+  border-top: 1px solid var(--warm-100);
   flex-shrink: 0;
 }
-/* Mas chico que en la cabecera —era 42— porque una firma no necesita el
-   mismo peso que un encabezado. */
-.logo-hub { width: 38px; height: 38px; display: block; opacity: 0.9; }
+.logo-hub { width: 48px; height: 48px; display: block; }
+.pie-iglesia {
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--gray-600);
+}
 
 /* ---------- HERO: la actividad que se viene ----------
    Una sola cosa: foto a la izquierda, que y cuando a la derecha. La
@@ -534,6 +549,10 @@ body {
   background-repeat: no-repeat;
   background-position: center;
 }
+/* Con recorte la foto llena el panel y el fondo borroneado queda tapado.
+   Va DESPUES de la regla de arriba y no antes: las dos tienen el mismo peso,
+   asi que la que gana es la ultima. */
+.modulo-foto-recorte::after { background-size: cover; }
 .modulo-foto-vacia {
   background: linear-gradient(148deg, #f9a97a 0%, var(--coral) 52%, #c04a3a 100%);
   display: flex;
@@ -712,30 +731,73 @@ body {
    Las preguntas que frenan a alguien en la puerta. Estaban al costado de los
    pasos, en un ancho que el iPad no tiene: ahora van debajo y a lo ancho, en
    dos columnas, que es lo que se lee de un vistazo estando parado. */
+/* ---------- PREGUNTAS PLEGADAS ----------
+   Una tarjeta blanca con las preguntas en filas separadas por una linea
+   finita, como el resto de las listas del kiosco. Era una grilla de dos
+   columnas con todas las respuestas abiertas: ocupaba media pantalla para
+   decir cuatro cosas cortas, y de lejos se leia como un bloque de texto en
+   vez de como cuatro preguntas.
+
+   Plegadas se leen las cuatro de un vistazo y se abre solo la que importa. */
 .preguntas {
-  background: var(--warm-50);
+  background: var(--white);
   border: 1px solid var(--warm-100);
   border-radius: var(--radius-sm);
-  padding: 24px 28px;
+  padding: 4px 26px;
   margin-bottom: 30px;
 }
-.preguntas-titulo {
-  font-size: 0.74rem;
+.pregunta { border-bottom: 1px solid var(--warm-100); }
+.pregunta:last-child { border-bottom: 0; }
+
+/* La pregunta es la parte que se toca, asi que ocupa toda la fila y tiene
+   alto de sobra para un dedo. list-style none saca el triangulito que el
+   navegador pone solo. */
+.pregunta-p {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  font-size: 1.05rem;
   font-weight: 700;
-  letter-spacing: 1.8px;
-  text-transform: uppercase;
+  color: var(--gray-900);
+  cursor: pointer;
+  list-style: none;
+}
+.pregunta-p::-webkit-details-marker { display: none; }
+.pregunta-p:focus-visible { outline: 3px solid var(--blue-600); outline-offset: 2px; }
+
+/* El mas dentro del circulo. Se dibuja con dos barras en vez de una imagen
+   para que la de arriba pueda girar y quedar en cruz al abrir. */
+.pregunta-mas {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--blue-600);
+  border-radius: 50%;
+}
+.pregunta-mas::before,
+.pregunta-mas::after {
+  content: "";
+  position: absolute;
+  inset: 50% 6px auto 6px;
+  height: 1.5px;
+  background: var(--blue-600);
+  transition: transform 0.18s ease;
+}
+.pregunta-mas::after { transform: rotate(90deg); }
+/* Abierta, la barra vertical se acuesta sobre la horizontal: el mas se
+   convierte en un menos y se ve de un vistazo cual esta abierta. */
+.pregunta[open] .pregunta-mas::after { transform: rotate(0deg); }
+
+.pregunta-r {
+  font-size: 1rem;
   color: var(--gray-600);
-  margin-bottom: 18px;
+  line-height: 1.5;
+  padding: 0 0 20px;
+  max-width: 62ch;
 }
-/* Sin divisorias: en dos columnas las lineas se cruzan y ensucian. El aire
-   alcanza para separar una pregunta de la otra. */
-.preguntas-grilla {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px 34px;
-}
-.pregunta-p { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
-.pregunta-r { font-size: 0.95rem; color: var(--gray-600); line-height: 1.45; }
 
 /* ---------- CANAL DE WHATSAPP ----------
    Cierra la pantalla. Verde de WhatsApp apenas insinuado en el borde: se
@@ -1105,7 +1167,8 @@ button.tarjeta .camino-flecha { padding-right: 0; }
   .contenido { padding: 0 40px 40px; }
   .cabecera { padding: 38px 40px 16px; }
   .intro { padding: 0 40px 28px; }
-  .pie { padding: 8px 40px 32px; }
+  .pie { padding: 26px 40px 30px; }
+  .logo-hub { width: 54px; height: 54px; }
   .hero { margin: 0 40px 26px; }
   .hero-actividad-btn { padding: 22px; }
   .hero-todas { padding: 16px 22px; }
@@ -1129,8 +1192,9 @@ button.tarjeta .camino-flecha { padding-right: 0; }
   .domingos { font-size: 0.94rem; }
   .logo-saddleback { height: 28px; }
   .campus { padding-left: 10px; font-size: 0.7rem; letter-spacing: 1px; }
-  .pie { padding: 6px 18px 22px; }
-  .logo-hub { width: 34px; height: 34px; }
+  .pie { padding: 18px 18px 20px; gap: 8px; }
+  .logo-hub { width: 42px; height: 42px; }
+  .pie-iglesia { font-size: 0.94rem; }
 
   /* Apilado: la tarjeta es angosta, el flyer al costado quedaria de 120px y
      al texto no le sobraria nada. */
@@ -1245,3 +1309,10 @@ button.tarjeta .camino-flecha { padding-right: 0; }
 .paso-puerta:active { background: var(--blue-700); }
 .paso-puerta:focus-visible { outline: 3px solid var(--gray-900); outline-offset: 2px; }
 .paso-puerta-flecha { font-size: 1.2rem; line-height: 1; }
+
+/* El bloque de anotarse cuando cuelga de un paso. Suelto en una pantalla
+   abre una seccion y por eso respira; aca cuelga del texto de arriba. */
+.paso .accion { margin-top: 12px; padding: 10px 18px 10px 10px; }
+.paso .accion .qr { padding: 8px; }
+/* El hueco de un paso al que le falta el formulario. */
+.paso-falta { margin-top: 12px; }

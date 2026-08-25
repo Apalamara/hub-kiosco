@@ -44,10 +44,12 @@
     <div class="caminos" id="caminos"></div>
   </div>
 
-  <!-- La firma. Como .contenido crece (flex:1), el pie queda apoyado abajo
-       de la pantalla y no colgando debajo de la ultima fila. -->
+  <!-- La firma, en una franja azul que cierra la pantalla. Como .contenido
+       crece (flex:1), el pie queda apoyado abajo y no colgando debajo de la
+       ultima fila. -->
   <footer class="pie">
     <img class="logo-hub" src="img/hub.png" alt="El Hub" width="256" height="256">
+    <span class="pie-iglesia">Saddleback Church</span>
   </footer>
 </div>
 
@@ -329,12 +331,15 @@ function pantalla(id, titulo, bajada, cuerpo, volverA) {
 function modulo(clave, accionHTML) {
   const t = TEXTOS[clave] || {};
   const camino = CAMINOS.find(c => c.id === clave) || {};
-  const ruta = FOTOS[clave];
+  // La foto puede venir como ruta suelta o como { src, recorte }.
+  const f = FOTOS[clave];
+  const ruta = typeof f === 'string' ? f : (f && f.src) || '';
+  const recorte = !!(f && f.recorte);
 
   // La imagen va en una variable CSS y no en background-image porque el panel
   // la usa dos veces: de fondo recortada y borrosa, y encima entera.
   const foto = ruta
-    ? `<div class="modulo-foto" style="--foto:url('${esc(ruta)}')"></div>`
+    ? `<div class="modulo-foto${recorte ? ' modulo-foto-recorte' : ''}" style="--foto:url('${esc(ruta)}')"></div>`
     : `<div class="modulo-foto modulo-foto-vacia">
          ${icono(camino.icono)}
          <span class="modulo-foto-nota">Falta foto</span>
@@ -501,6 +506,19 @@ function pasos(lista) {
          </button>`
       : '';
 
+    // Un paso puede llevar su propia inscripcion, siempre visible, aunque no
+    // tenga fecha. Activa es asi: no hay una fecha que mostrar, pero el que
+    // se entusiasma tiene que poder dejar sus datos ahi mismo.
+    //
+    // Sin el link cargado se muestra el hueco marcado y no un QR al Linktree:
+    // un codigo que promete "anotate en Activa" y lleva a otra cosa es peor
+    // que decir que todavia falta.
+    const url = p.form ? FORMS[p.form] : '';
+    const anotarse = !p.form ? ''
+      : url
+        ? accionQR(p.formAccion || 'Anotate', url, 'Escaneá el código con tu celular')
+        : `<div class="paso-falta">${FALTA} formulario para anotarse</div>`;
+
     return `
     <li class="paso">
       <span class="paso-num">${i + 1}</span>
@@ -511,6 +529,7 @@ function pasos(lista) {
         </span>
         <span class="paso-desc">${esc(p.texto)}</span>
         ${puerta}
+        ${anotarse}
       </span>
     </li>`;
   }).join('') + '</ol>';
@@ -519,16 +538,25 @@ function pasos(lista) {
 // Las preguntas van despues de los pasos, a lo ancho y en dos columnas: son
 // las que alguien se hace justo antes de decidir si viene, asi que tienen que
 // entrar de un vistazo y no obligar a scrollear.
-function preguntas(lista) {
-  return `<aside class="preguntas">
-    <div class="preguntas-titulo">Antes de venir</div>
-    <div class="preguntas-grilla">
-      ${lista.map(q => `<div>
-        <div class="pregunta-p">${esc(q.p)}</div>
-        <div class="pregunta-r">${esc(q.r)}</div>
-      </div>`).join('')}
-    </div>
-  </aside>`;
+// Las preguntas, plegadas. Era una grilla con todas las respuestas abiertas y
+// ocupaba media pantalla para decir cuatro cosas cortas; plegadas se leen las
+// preguntas de un vistazo y se abre solo la que a uno le importa.
+//
+// <details> y <summary> son etiquetas del navegador: abren y cierran sin una
+// linea de JavaScript, funcionan con el teclado y las lee un lector de
+// pantalla. Lo unico que hace el CSS es sacarles la flechita por defecto y
+// poner la nuestra.
+function preguntas(lista, titulo) {
+  return `<h2 class="subtitulo">${esc(titulo || 'Preguntas frecuentes')}</h2>
+  <div class="preguntas">
+    ${lista.map(q => `<details class="pregunta">
+      <summary class="pregunta-p">
+        <span>${esc(q.p)}</span>
+        <span class="pregunta-mas" aria-hidden="true"></span>
+      </summary>
+      <div class="pregunta-r">${esc(q.r)}</div>
+    </details>`).join('')}
+  </div>`;
 }
 
 // El canal de difusion cierra la pantalla: no es un paso mas, es como se
@@ -543,6 +571,7 @@ function bloqueCanal() {
       <div class="canal-nota">${hay
         ? 'Escaneá el código y te sumás'
         : 'Por ahora el código lleva al Linktree &middot; ' + FALTA + ' link del canal'}</div>
+      ${hay ? `<a class="accion-link" href="${esc(CANALES.whatsapp)}" target="_blank" rel="noopener">Sumarme al canal</a>` : ''}
     </div>
   </div>`;
 }
@@ -594,11 +623,14 @@ function construirPantallas() {
 
   // 2. BAUTISMO
   // La bajada se fue: el modulo ya dice de que se trata, y mejor.
+  // Sin "Las fechas". El titulo prometia fechas y las dos tarjetas de abajo
+  // decian "a coordinar": un horario suelto sin dia no le sirve a nadie, y las
+  // dos se diferenciaban en una sola linea. Lo que decian esta ahora dentro de
+  // las preguntas, que es donde alguien lo va a buscar.
   pantalla('bautismo', 'Quiero bautizarme', '',
     modulo('bautismo',
       accionQR(TEXTOS.bautismo.accion, FORMS.bautismo, 'Escaneá el código con tu celular'))
-    + '<h2 class="subtitulo">Las fechas</h2>'
-    + tarjetasRecurrentes(r => /bautismo/i.test(r.nombre)));
+    + preguntas(PREGUNTAS_BAUTISMO));
 
   // 3. ENCONTRAR MI COMUNIDAD
   const coms = COMUNIDADES_LINKS.filter(c => !c.esHero);
