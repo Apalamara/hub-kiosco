@@ -338,8 +338,10 @@ function modulo(clave, accionHTML) {
   const camino = CAMINOS.find(c => c.id === clave) || {};
   const ruta = FOTOS[clave];
 
+  // La imagen va en una variable CSS y no en background-image porque el panel
+  // la usa dos veces: de fondo recortada y borrosa, y encima entera.
   const foto = ruta
-    ? `<div class="modulo-foto" style="background-image:url('${esc(ruta)}')"></div>`
+    ? `<div class="modulo-foto" style="--foto:url('${esc(ruta)}')"></div>`
     : `<div class="modulo-foto modulo-foto-vacia">
          ${icono(camino.icono)}
          <span class="modulo-foto-nota">Falta foto</span>

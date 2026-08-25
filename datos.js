@@ -109,7 +109,7 @@ const REUNIONES = {
 const FOTOS = {
   hero: "",       // ej: "fotos/domingo.jpg"
   bautismo: "",   // apaisada, gente abrazandose despues del bautismo
-  nuevo: "",      // apaisada, el desayuno de nuevos amigos o gente charlando
+  nuevo: "fotos/frente-saddleback.jpg",   // el frente de Mario Bravo 559
   crecer: "",     // apaisada, dos personas charlando con un cafe, o un grupo
 };
 

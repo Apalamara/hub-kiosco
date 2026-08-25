@@ -493,11 +493,34 @@ body {
   overflow: hidden;
   margin: 22px 0 34px;
 }
+/* El panel es alto y angosto y las fotos vienen apaisadas: recortando para
+   llenarlo, de una foto del frente quedaba "DDLEBACK CHUR" partido a los dos
+   lados. Mismo arreglo que en el flyer del hero: el fondo es la misma imagen
+   recortada y borroneada, y encima va la foto entera. */
 .modulo-foto {
+  position: relative;
   width: 45%;
   flex-shrink: 0;
   min-height: 340px;
+  overflow: hidden;
+  background: var(--warm-50);
+}
+.modulo-foto::before {
+  content: "";
+  position: absolute;
+  inset: -30px;
+  background-image: var(--foto);
   background-size: cover;
+  background-position: center;
+  filter: blur(26px) brightness(0.8) saturate(1.15);
+}
+.modulo-foto::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--foto);
+  background-size: contain;
+  background-repeat: no-repeat;
   background-position: center;
 }
 .modulo-foto-vacia {
@@ -509,6 +532,8 @@ body {
   gap: 18px;
 }
 .modulo-foto-vacia svg {
+  position: relative;
+  z-index: 1;
   width: 62px;
   height: 62px;
   stroke: rgba(255,255,255,0.9);
@@ -518,6 +543,8 @@ body {
   stroke-linejoin: round;
 }
 .modulo-foto-nota {
+  position: relative;
+  z-index: 1;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 1.2px;
