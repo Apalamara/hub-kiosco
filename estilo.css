@@ -249,7 +249,7 @@ body {
    el medio rodeado de desenfoque.
 
    Al lado gana el doble: el flyer comparte el alto con el texto en vez de
-   sumarse, asi que con la misma tarjeta puede medir 340x191 en vez de los
+   sumarse, asi que con la misma tarjeta puede medir 248x140 en vez de los
    790x150 de la banda. Es la unica forma de que sea grande de verdad y que
    la home siga entrando en el iPad. Apilado se queda en el celular, que es
    donde la tarjeta es angosta y la banda si funciona. */
@@ -311,10 +311,14 @@ body {
    mitad. Asi que el recuadro se llena dos veces con la misma imagen: abajo
    recortada y borroneada, que es solo fondo, y encima el flyer completo. Sea
    cuadrado o apaisado, entra entero y el recuadro nunca queda vacio. */
+/* 248x140 es el punto medio entre las dos medidas que ya probamos: la
+   estampilla de 168x90, que no dejaba ver de que era el afiche, y los 340x191,
+   que se comian la home. A 140 de alto el flyer se lee y la tarjeta deja de
+   ser lo unico que hay arriba. */
 .hero-foto {
   position: relative;
-  width: 340px;
-  height: 191px;
+  width: 248px;
+  height: 140px;
   flex-shrink: 0;
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -1172,7 +1176,7 @@ button.tarjeta .camino-flecha { padding-right: 0; }
   .hero { margin: 0 40px 26px; }
   .hero-actividad-btn { padding: 22px; }
   .hero-todas { padding: 16px 22px; }
-  .hero-foto { width: 384px; height: 216px; }
+  .hero-foto { width: 280px; height: 158px; }
   .domingos { margin: 0 40px 22px; }
   .camino-panel { width: 140px; }
 }
