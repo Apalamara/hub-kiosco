@@ -87,6 +87,11 @@ const FALTA = '<span class="falta">Falta definir</span>';
 // calculado sobre la lista filtrada apuntaria a otro evento desde cada lado.
 function idEvento(e) { return 'evento-' + EVENTOS.indexOf(e); }
 
+// Una entrada de FOTOS puede ser una ruta suelta o { src, recorte }. Las dos
+// formas se leen igual desde cualquier lado que muestre una foto.
+function rutaFoto(f) { return typeof f === 'string' ? f : (f && f.src) || ''; }
+function fotoRecorta(f) { return !!(f && f.recorte); }
+
 // Pictogramas dibujados para este proyecto: los glifos geometricos no
 // significan nada y una gota se entiende antes de leer "quiero bautizarme".
 // Trazo, no relleno, para que aguanten cualquier tamano.
@@ -331,10 +336,9 @@ function pantalla(id, titulo, bajada, cuerpo, volverA) {
 function modulo(clave, accionHTML) {
   const t = TEXTOS[clave] || {};
   const camino = CAMINOS.find(c => c.id === clave) || {};
-  // La foto puede venir como ruta suelta o como { src, recorte }.
   const f = FOTOS[clave];
-  const ruta = typeof f === 'string' ? f : (f && f.src) || '';
-  const recorte = !!(f && f.recorte);
+  const ruta = rutaFoto(f);
+  const recorte = fotoRecorta(f);
 
   // La imagen va en una variable CSS y no en background-image porque el panel
   // la usa dos veces: de fondo recortada y borrosa, y encima entera.
@@ -579,6 +583,130 @@ function bloqueCanal() {
 // El campo "status" de RECURRENTES estaba sin usar: una actividad en pausa se
 // mostraba igual que una que esta corriendo. En un kiosco eso es peor que no
 // mostrarla, porque alguien va y no hay nadie. Ahora se avisa.
+// "12 de septiembre al 13 de diciembre", o el hueco marcado si todavia no
+// estan las fechas. Nunca un periodo inventado: una temporada equivocada hace
+// que alguien llegue tarde a algo que no puede empezar.
+function rangoTemporada(t) {
+  if (!t || !t.inicio || !t.fin) return null;
+  const a = parseFecha(t.inicio), b = parseFecha(t.fin);
+  const dia = f => `${f.getDate()} de ${MESES_FULL[f.getMonth()].toLowerCase()}`;
+  return `${dia(a)} al ${dia(b)}`;
+}
+
+// La banda de Grupos Pequenos: el nombre grande sobre la foto y la temporada
+// debajo, como el modulo de saddleback.com. Va arriba de la grilla porque no
+// es una comunidad mas: las de abajo se eligen por edad —o sos de Kids o sos
+// de GAM— y esta es transversal, cualquiera entra.
+function bannerGrupos() {
+  const g = GRUPOS_PEQUENOS;
+  const ruta = rutaFoto(FOTOS.grupos);
+  const temporada = rangoTemporada(g.temporada);
+
+  return `<div class="banner${ruta ? '' : ' banner-sin-foto'}"
+               ${ruta ? `style="--foto:url('${esc(ruta)}')"` : ''}>
+    <div class="banner-contenido">
+      <div class="banner-titulo display">Grupos Pequeños</div>
+      <div class="banner-temporada">${temporada
+        ? 'Temporada: ' + esc(temporada)
+        : FALTA + ' fechas de la temporada'}</div>
+    </div>
+  </div>`;
+}
+
+// ---------- LA CARD ----------
+// Foto arriba, texto abajo y la accion al pie, al modelo de las cards de
+// saddleback.com. Es un solo componente para dos usos distintos —los caminos
+// de Grupos Pequenos y las comunidades— porque son la misma pieza: una cosa
+// con cara, nombre, explicacion y una salida.
+//
+// La cabecera es foto si hay, y si no un plano del color que la cosa ya tiene
+// cargado, con su pictograma. Asi la card nunca se ve rota por falta de foto:
+// se ve como si el color fuera la decision.
+function card({ foto, color, icono, emoji, titulo, meta, texto, accion, ancha }) {
+  const cab = foto
+    ? `<div class="card-foto" style="background-image:url('${esc(foto)}')"></div>`
+    : `<div class="card-foto card-foto-vacia" style="background:${esc(color || '#6a4a91')}">
+         ${emoji ? `<span class="card-emoji">${emoji}</span>` : icono ? icono : ''}
+       </div>`;
+
+  // "ancha" da vuelta la card: foto al costado en vez de arriba. Es para
+  // cuando queda una sola y ocupar el ancho completo con la foto de sombrero
+  // la haria parecer un banner mas, justo debajo del banner.
+  return `<div class="card${ancha ? ' card-ancha' : ''}">
+    ${cab}
+    <div class="card-cuerpo">
+      <h3 class="card-titulo">${esc(titulo)}</h3>
+      ${meta ? `<div class="card-meta">${meta}</div>` : ''}
+      ${texto ? `<p class="card-texto">${esc(texto)}</p>` : ''}
+      ${accion || ''}
+    </div>
+  </div>`;
+}
+
+// La accion al pie de una card: el QR con el nombre del boton al lado. Donde
+// saddleback.com pone una pastilla azul, el kiosco pone el codigo, que es lo
+// unico que un iPad le puede pasar a alguien.
+function cardAccion(boton, url, nota) {
+  return `<div class="card-accion">
+    ${qr(url, 92)}
+    <div>
+      <div class="card-boton">${esc(boton)}</div>
+      <div class="card-nota">${esc(nota)}</div>
+    </div>
+  </div>`;
+}
+
+// Los caminos de Grupos Pequenos. Solo salen los que tienen link: es lo que
+// mantiene afuera el de liderar hasta que se confirme que existe aca.
+function caminosGrupos() {
+  const g = GRUPOS_PEQUENOS;
+  const vivos = (g.caminos || []).filter(c => c.link);
+  if (!vivos.length) return '';
+
+  const una = vivos.length === 1;
+  return `<p class="banner-bajada">${esc(g.bajada)}</p>`
+    + `<div class="${una ? 'lista' : 'grilla'}">` + vivos.map(c => card({
+        foto: rutaFoto(c.foto),
+        color: '#1980cc',
+        icono: icono('grupo'),
+        titulo: c.titulo,
+        texto: c.texto,
+        accion: cardAccion(c.boton, c.link, c.nota),
+        ancha: una,
+      })).join('') + '</div>'
+    + (g.lider ? `<p class="evento-contacto">Consultas sobre grupos: ${esc(g.lider)}</p>` : '');
+}
+
+// La card de una comunidad. Muestra TODOS los canales que tenga, un QR cada
+// uno: antes se elegia uno solo por orden fijo, asi que una comunidad con
+// canal e Instagram perdia uno de los dos sin avisar.
+function tarjetaComunidad(c) {
+  const canales = [];
+  if (c.canal)     canales.push({ label: 'WhatsApp',  url: c.canal, pie: 'Canal de la comunidad' });
+  if (c.instagram) canales.push({ label: 'Instagram', url: 'https://instagram.com/' + c.instagram, pie: '@' + c.instagram });
+  if (!canales.length && c.linktree) canales.push({ label: 'Más info', url: c.linktree, pie: 'Linktree' });
+
+  const lider = (!c.lider || c.lider.indexOf('?') >= 0) ? FALTA + ' referente' : esc(c.lider);
+
+  const accion = canales.length
+    ? '<div class="com-canales">' + canales.map(x => `<div class="com-canal">
+         ${qr(x.url, 88)}
+         <div class="com-canal-label">${esc(x.label)}</div>
+         <div class="com-canal-pie">${esc(x.pie)}</div>
+       </div>`).join('') + '</div>'
+    : `<div class="com-sin-canal">${FALTA} canal de WhatsApp o Instagram</div>`;
+
+  return card({
+    foto: rutaFoto(c.foto),
+    color: c.color,
+    emoji: c.icono,
+    titulo: c.nombre,
+    meta: `<span>${esc(c.rango)}</span><span>${lider}</span>`,
+    texto: c.descripcion,
+    accion,
+  });
+}
+
 function tarjetasRecurrentes(filtro) {
   const items = RECURRENTES.filter(filtro);
   if (!items.length) return '<div class="vacio">Todavía no hay nada cargado acá.</div>';
@@ -633,35 +761,16 @@ function construirPantallas() {
     + preguntas(PREGUNTAS_BAUTISMO));
 
   // 3. ENCONTRAR MI COMUNIDAD
+  // Arranca con Grupos Pequenos y despues la grilla por edad. El orden es el
+  // de la pregunta real: "donde entro yo" se responde antes con un grupo que
+  // se junta en una casa que con una lista de nueve comunidades.
   const coms = COMUNIDADES_LINKS.filter(c => !c.esHero);
-  pantalla('comunidad', 'Encontrar mi comunidad',
-    'Grupos por edad y por etapa de la vida. Buscá el tuyo.',
-    '<div class="grilla">' + coms.map(c => {
-      // El orden es a proposito: WhatsApp es el canal donde la conversacion
-      // sigue, asi que va primero cuando existe. Despues Instagram, y despues
-      // el link propio de la comunidad.
-      //
-      // "link" estaba cargado en Grupos Pequenos y el codigo nunca lo miraba:
-      // habia un onlyLink escrito en los datos que ninguna linea leia, asi
-      // que la tarjeta mostraba el WhatsApp del referente en lugar del
-      // buscador de grupos. Al vaciarse los WhatsApp la tarjeta se quedaba
-      // sin nada teniendo un link perfectamente bueno cargado.
-      const canal = c.whatsapp ? 'https://wa.me/' + c.whatsapp
-                  : c.instagram ? 'https://instagram.com/' + c.instagram
-                  : c.link || c.linktree || '';
-      const etiqueta = c.whatsapp ? 'WhatsApp'
-                     : c.instagram ? 'Instagram'
-                     : c.link ? (c.linkLabel || 'Más info')
-                     : c.linktree ? 'Más info' : '';
-      const lider = (!c.lider || c.lider.indexOf('?') >= 0) ? FALTA + ' referente' : esc(c.lider);
-      return `<div class="tarjeta">
-        <div class="tarjeta-titulo">${esc(c.nombre)}</div>
-        <div class="tarjeta-meta"><span>${esc(c.rango)}</span><span>${lider}</span></div>
-        ${canal
-          ? `<div class="tarjeta-texto" style="margin-bottom:10px">${etiqueta}</div>${qr(canal, 118)}`
-          : `<div class="tarjeta-texto" style="margin-top:12px">${FALTA} dónde pedir más info</div>`}
-      </div>`;
-    }).join('') + '</div>');
+  pantalla('comunidad', 'Encontrar mi comunidad', '',
+    bannerGrupos()
+    + caminosGrupos()
+    + '<h2 class="subtitulo">Tu comunidad por edad y etapa</h2>'
+    + '<p class="bajada">Además del grupo, cada etapa de la vida tiene la suya. Buscá la tuya y sumate al canal.</p>'
+    + '<div class="grilla">' + coms.map(tarjetaComunidad).join('') + '</div>');
 
   // QUIERO CRECER
   // El orden en pantalla no lo decide este archivo sino CAMINOS en datos.js:

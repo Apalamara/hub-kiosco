@@ -158,6 +158,14 @@ const FOTOS = {
   bautismo: { src: "fotos/bautismo-abrazo.jpg", recorte: true },
   nuevo: "fotos/frente-saddleback.jpg",   // el frente de Mario Bravo 559
   crecer: "",     // apaisada, dos personas charlando con un cafe, o un grupo
+  // La banda de Grupos Pequenos. Apaisada y bien ancha: es un fondo con el
+  // titulo encima, asi que conviene con recorte y sin nada escrito adentro.
+  //
+  // PROVISORIA: es la foto del modulo de Small Groups de saddleback.com, o
+  // sea gente del campus de Estados Unidos. Sirve para ver el diseno, pero hay
+  // que reemplazarla por una de un grupo de Buenos Aires: el kiosco esta en el
+  // hall de Mario Bravo y ahi la gente se reconoce o no se reconoce.
+  grupos: { src: "fotos/grupos-PROVISORIA-saddleback-us.jpg", recorte: true },
 };
 
 
@@ -428,15 +436,17 @@ const RECURRENTES = [
 ];
 
 // --- COMUNIDADES_LINKS ---
-// Los "whatsapp" estan todos vacios a proposito. Tenian el numero personal
-// del referente de cada comunidad, sacado de una planilla interna, y en la
-// pantalla del hall eso queda publicado sin que la persona lo haya aceptado.
-// Vuelven de a uno, cuando cada referente diga que si —y mejor todavia si en
-// lugar de su numero personal pasa el link del grupo de la comunidad.
+// Cada comunidad muestra los canales que tenga: el canal de WhatsApp, el
+// Instagram, o los dos. Un QR por cada uno.
 //
-// Mientras tanto la tarjeta cae al Instagram, o al link de la comunidad, o
-// muestra el hueco marcado. El hueco es el recordatorio de a quien falta
-// preguntarle.
+// "canal" es el LINK del canal o del grupo, nunca un telefono. Antes este
+// campo tenia el numero personal del referente sacado de una planilla
+// interna, y eso en la pantalla del hall queda publicado sin que la persona
+// lo haya aceptado. Un canal no tiene ese problema: no expone a nadie y no
+// hay que volver a cambiarlo cuando el referente cambia.
+//
+// Lo que este vacio se muestra como hueco marcado. El hueco es el
+// recordatorio de a quien falta preguntarle.
 const COMUNIDADES_LINKS = [
   {
     nombre: "El Hub",
@@ -445,7 +455,7 @@ const COMUNIDADES_LINKS = [
     descripcion: "Punto de conexión central de Saddleback Buenos Aires. Linktree con toda la info.",
     color: "#242424",
     icono: "&#127968;",
-    whatsapp: "",                    // <-- Agregar si hay grupo WA del Hub
+    canal: "",                    // <-- link del canal o grupo de WhatsApp
     instagram: "",                   // <-- Agregar handle de IG
     linktree: "https://linktr.ee/EL_HUB",
     esHero: true,
@@ -457,7 +467,7 @@ const COMUNIDADES_LINKS = [
     descripcion: "Ministerio para los más pequeños de la iglesia.",
     color: "#3d8a5f",
     icono: "&#127880;",
-    whatsapp: "",                    // <-- Geli no confirmo que quiera su numero en pantalla
+    canal: "",                    // <-- link del canal o grupo de WhatsApp
     instagram: "saddlebackkidsbsas",
   },
   {
@@ -467,7 +477,7 @@ const COMUNIDADES_LINKS = [
     descripcion: "Comunidad para preadolescentes.",
     color: "#1f8a7d",
     icono: "&#11088;",
-    whatsapp: "",                    // <-- Andrea no confirmo que quiera su numero en pantalla
+    canal: "",                    // <-- link del canal o grupo de WhatsApp
     instagram: "",                   // <-- Agregar handle de IG
   },
   {
@@ -477,7 +487,7 @@ const COMUNIDADES_LINKS = [
     descripcion: "Comunidad para adolescentes.",
     color: "#14707c",
     icono: "&#9889;",
-    whatsapp: "",                    // <-- Agregar numero
+    canal: "",                    // <-- link del canal o grupo de WhatsApp
     instagram: "sym.bsas",
   },
   {
@@ -487,7 +497,7 @@ const COMUNIDADES_LINKS = [
     descripcion: "Comunidad de jóvenes. Se juntan los sábados.",
     color: "#b06a14",
     icono: "&#128293;",
-    whatsapp: "",                    // <-- Martin no confirmo que quiera su numero en pantalla
+    canal: "",                    // <-- link del canal o grupo de WhatsApp
     instagram: "",                   // <-- Agregar handle de IG
   },
   {
@@ -497,7 +507,7 @@ const COMUNIDADES_LINKS = [
     descripcion: "Comunidad de jóvenes adultos. Se juntan los sábados.",
     color: "#c0563a",
     icono: "&#128293;",
-    whatsapp: "",                    // <-- Agregar numero
+    canal: "",                    // <-- link del canal o grupo de WhatsApp
     instagram: "",                   // <-- Agregar handle de IG
   },
   {
@@ -507,7 +517,7 @@ const COMUNIDADES_LINKS = [
     descripcion: "Comunidad de adultos.",
     color: "#5b6b7a",
     icono: "&#128104;&#8205;&#127979;",
-    whatsapp: "",                    // <-- Agregar numero
+    canal: "",                    // <-- link del canal o grupo de WhatsApp
     instagram: "",                   // <-- Agregar handle de IG
   },
   {
@@ -517,7 +527,7 @@ const COMUNIDADES_LINKS = [
     descripcion: "Comunidad para adultos mayores. Desayunos, teatro, encuentros.",
     color: "#6a4a91",
     icono: "&#128156;",
-    whatsapp: "",                    // <-- Paola no confirmo que quiera su numero en pantalla
+    canal: "",                    // <-- link del canal o grupo de WhatsApp
     instagram: "",                   // <-- Agregar handle de IG
   },
   {
@@ -527,22 +537,54 @@ const COMUNIDADES_LINKS = [
     descripcion: "Comunidad para matrimonios. Encuentros Refresh y más.",
     color: "#a83c69",
     icono: "&#128141;",
-    whatsapp: "",                    // <-- Agregar numero de Pipi
+    canal: "",                    // <-- link del canal o grupo de WhatsApp
     instagram: "",                   // <-- Agregar handle de IG
-  },
-  {
-    nombre: "Grupos Pequeños",
-    rango: "Todas las edades",
-    lider: "Ruben",
-    descripcion: "Grupos de vida en comunidad. Buscá uno cerca tuyo.",
-    color: "#1980cc",
-    icono: "&#129309;",
-    whatsapp: "",                    // <-- Ruben no confirmo que quiera su numero en pantalla
-    instagram: "",                   // <-- Agregar handle de IG
-    link: "https://saddleback.com/groups/find-a-group?campus=5",
-    linkLabel: "Buscar grupo",
   },
 ];
+
+
+// --- GRUPOS PEQUENOS ---
+// Sale de COMUNIDADES_LINKS y pasa a tener bloque propio arriba de todo en
+// "Encontrar mi comunidad". No es una comunidad mas de la grilla: las otras
+// se eligen por edad o etapa —o sos de Kids o sos de GAM, no las dos— y esta
+// es transversal, cualquiera entra. Ademas es la que la iglesia empuja.
+//
+// El modelo es el modulo de Small Groups de saddleback.com: banda con foto,
+// el nombre grande y la temporada debajo.
+const GRUPOS_PEQUENOS = {
+  bajada: "Un grupo se junta una vez por semana, casi siempre en la casa de alguien, para charlar la vida y la fe. Es donde la iglesia deja de ser un lugar al que vas y pasa a ser gente que te conoce.",
+  lider: "Ruben",
+
+  // FALTA: las fechas reales de la temporada. Ani las averigua. Mientras
+  // esten vacias, la banda muestra el hueco marcado en vez de inventar un
+  // periodo: una fecha equivocada es peor que ninguna.
+  temporada: { inicio: "", fin: "" },   // ej: "2026-09-12" y "2026-12-13"
+
+  // Los dos caminos, al modelo de "Join a Group" y "Lead a Group" de
+  // saddleback.com. Cada uno es una card con foto arriba.
+  //
+  // Una card sin "link" no se muestra: es lo que mantiene afuera el camino de
+  // liderar hasta que alguien confirme que en Buenos Aires existe (implica una
+  // capacitacion y nadie dijo que se de aca).
+  caminos: [
+    {
+      titulo: "Sumate a un grupo",
+      texto: "La vida es mejor acompañada. Un grupo pequeño es donde la fe se charla de verdad, con gente que se termina conociendo. No importa en qué andás: hay un grupo para vos.",
+      boton: "Buscar mi grupo",
+      nota: "Escaneá el código y elegí el que te quede cerca",
+      link: "https://saddleback.com/groups/find-a-group?campus=5",  // buscador del campus 5, que es Buenos Aires
+      foto: "",   // FALTA: una mesa, un living, gente charlando
+    },
+    {
+      titulo: "Liderá un grupo",
+      texto: "Liderar no es saber todas las respuestas: es abrir tu casa y hacer las preguntas. Te damos la capacitación y el acompañamiento para que puedas.",
+      boton: "Quiero liderar",
+      nota: "Escaneá el código con tu celular",
+      link: "",   // FALTA CONFIRMAR que este camino exista en Buenos Aires
+      foto: "",
+    },
+  ],
+};
 
 // --- SERIES ---
 const SERIES = [
