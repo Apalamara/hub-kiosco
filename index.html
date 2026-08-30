@@ -54,7 +54,8 @@
 </div>
 
 <!-- ==================== PANTALLAS INTERNAS ==================== -->
-<!-- Se generan las ocho desde JS: siete caminos y el calendario. -->
+<!-- Se generan desde JS: los seis caminos, Actividades, una pantalla por
+     evento, y el calendario (que hoy no tiene entrada desde ningun lado). -->
 
 <script src="datos.js"></script>
 <script>
@@ -460,26 +461,6 @@ function accionQR(titulo, url, nota) {
   </div>`;
 }
 
-function destacado(label, titulo, texto) {
-  return `<div class="destacado">
-    <div class="destacado-label">${esc(label)}</div>
-    <div class="destacado-titulo">${esc(titulo)}</div>
-    <div class="destacado-texto">${texto}</div>
-  </div>`;
-}
-
-// Mientras no exista el formulario de Activa, el QR del Linktree ocupa su
-// lugar: es la diferencia entre "todavia no esta" y "esta roto".
-function bloqueActiva(numeros, texto) {
-  const url = FORMS.activa || FORMS.linktree;
-  const aviso = FORMS.activa ? '' : `<div style="margin-top:14px">${FALTA} formulario de Activa</div>`;
-  return destacado('Primer paso', 'Activa ' + numeros, esc(texto) + aviso)
-       + `<div class="tarjeta" style="margin-bottom:28px">
-            <div class="tarjeta-titulo">${FORMS.activa ? 'Anotate' : 'Mientras tanto, toda la info acá'}</div>
-            <div class="tarjeta-meta" style="margin-bottom:14px">Escaneá el código con tu celular</div>
-            ${qr(url, 160)}
-          </div>`;
-}
 
 // Los pasos van numerados y no como tarjetas iguales: el numero es lo que
 // convierte tres opciones en un camino. El que llega no tiene que elegir,
@@ -785,10 +766,19 @@ function construirPantallas() {
     + tarjetasRecurrentes(r => r.comunidad === 'C.Esp.'));
 
   // 5. QUIERO SERVIR
-  pantalla('servir', 'Quiero servir',
-    'Antes de sumarte a un equipo, descubrí para qué estás hecho.',
-    bloqueActiva('3', 'Descubrí tu forma: en qué sos bueno, qué te mueve y dónde encaja eso en la iglesia.')
-    + '<h2 class="titulo-pantalla" style="font-size:1.3rem;margin:34px 0 16px">Las áreas</h2>'
+  // Arranca con el modulo calido, como bautismo. Antes abria con el bloque
+  // negro de Activa: un rectangulo oscuro con una consigna adentro, sin foto
+  // y sin decir de que se trata servir. La pantalla mas linda del kiosco
+  // —bautismo— no hace nada raro, hace esto: foto grande, titulo en caja baja
+  // y dos parrafos que hablan como una persona.
+  pantalla('servir', 'Quiero servir', '',
+    modulo('servir', accionQR(
+      TEXTOS.servir.accion,
+      FORMS.activa || FORMS.linktree,
+      FORMS.activa ? 'Escaneá el código y anotate en Activa 3'
+                   : 'Por ahora el código lleva al Linktree'))
+    + (FORMS.activa ? '' : `<p class="evento-nota">${FALTA} formulario de Activa</p>`)
+    + '<h2 class="subtitulo">Los equipos</h2>'
     + '<div class="grilla">' + AREAS.map(a => `
         <div class="tarjeta">
           <div class="tarjeta-titulo">${esc(a.nombre)}</div>
@@ -836,9 +826,13 @@ function construirPantallas() {
   EVENTOS.forEach(pantallaEvento);
 
   // 7. ACOMPANAMIENTO
-  pantalla('acompanamiento', 'Acompañamiento',
-    'Espacios para cuando estás pasando algo difícil. No hace falta anotarse: venís y ya.',
-    tarjetasRecurrentes(r => r.comunidad === 'CR' || /oraci[oó]n/i.test(r.nombre)));
+  // Era la unica pantalla que no decia nada: entrabas y habia dos tarjetas
+  // sueltas. Es justo la que mas necesita hablar bien, porque el que la abre
+  // esta pasando algo. Sin QR a proposito: no hay que anotarse a nada.
+  pantalla('acompanamiento', 'Acompañamiento', '',
+    modulo('acompanamiento')
+    + '<h2 class="subtitulo">Dónde y cuándo</h2>'
+    + tarjetasRecurrentes(r => r.comunidad === 'CR' || /oraci[oó]n/i.test(r.nombre)));
 
   // CALENDARIO
   // OJO: hoy no se llega desde ningun lado. Tenia un link al pie y se saco.

@@ -976,34 +976,6 @@ body {
 }
 .com-sin-canal { font-size: 0.95rem; color: var(--gray-600); margin-top: auto; }
 
-/* ---------- BLOQUE DESTACADO (Activa) ---------- */
-.destacado {
-  background: var(--gray-900);
-  color: var(--white);
-  border-radius: var(--radius);
-  padding: 30px 32px;
-  margin-bottom: 28px;
-}
-.destacado-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 2.4px;
-  text-transform: uppercase;
-  opacity: 0.7;
-  margin-bottom: 10px;
-}
-.destacado-titulo {
-  font-family: var(--font-display);
-  font-stretch: 125%;
-  text-transform: uppercase;
-  font-size: 1.8rem;
-  font-weight: 500;
-  letter-spacing: 1.6px;
-  line-height: 1.1;
-  margin-bottom: 12px;
-}
-.destacado-texto { font-size: 1.05rem; opacity: 0.9; max-width: 44ch; }
-
 /* ---------- TARJETAS DE CONTENIDO ---------- */
 .lista { display: flex; flex-direction: column; gap: 14px; }
 
@@ -1439,9 +1411,6 @@ button.tarjeta .camino-flecha { padding-right: 0; }
   .paso-nombre { font-size: 1.1rem; }
   .paso-desc { font-size: 0.96rem; max-width: none; }
 
-  .destacado { padding: 22px 20px; }
-  .destacado-titulo { font-size: 1.35rem; }
-  .destacado-texto { max-width: none; }
 
   /* El calendario en 350px: celdas mas bajas y letra mas chica. Sigue
      siendo apretado, pero un mes son siete columnas y no hay vuelta. */

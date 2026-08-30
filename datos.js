@@ -158,6 +158,8 @@ const FOTOS = {
   bautismo: { src: "fotos/bautismo-abrazo.jpg", recorte: true },
   nuevo: "fotos/frente-saddleback.jpg",   // el frente de Mario Bravo 559
   crecer: "",     // apaisada, dos personas charlando con un cafe, o un grupo
+  servir: { src: "", recorte: true },          // el Dream Team en accion: recibiendo, armando, tocando
+  acompanamiento: { src: "", recorte: true },  // dos personas hablando, o una mano sobre un hombro
   // La banda de Grupos Pequenos. Apaisada y bien ancha: es un fondo con el
   // titulo encima, asi que conviene con recorte y sin nada escrito adentro.
   //
@@ -205,6 +207,25 @@ const TEXTOS = {
       "Hay dos caminos según dónde estés. Uno es uno a uno, con alguien que te acompaña de cerca. El otro es en grupo, con más tiempo y más profundidad.",
     ],
     accion: "Quiero empezar",
+  },
+  // OJO: el titulo y los parrafos de "servir" y "acompanamiento" los redacte
+  // yo. No inventan ningun dato —salen de lo que ya decian las pantallas y de
+  // AREAS y RECURRENTES— pero el tono es mio y conviene que alguien de Buenos
+  // Aires los lea antes de que queden fijos.
+  servir: {
+    titulo: "¿Para qué estás hecho?",
+    parrafos: [
+      "Servir acá no es llenar un puesto vacío. Cada equipo necesita cosas distintas, y lo que a vos te sale fácil probablemente sea justo lo que a otro le cuesta.",
+      "Si no sabés por dónde empezar, Activa 3 es una hora para descubrir tu forma: en qué sos bueno, qué te mueve, y dónde encaja eso acá adentro.",
+    ],
+    accion: "Descubrí tu forma",
+  },
+  acompanamiento: {
+    titulo: "No tenés que poder solo",
+    parrafos: [
+      "Hay épocas en que la vida pesa más de lo que uno puede cargar. Para eso están estos espacios: gente que pasó por algo parecido y se junta a acompañarse.",
+      "No hace falta anotarse ni contar nada. Venís, te sentás y escuchás. Si en algún momento querés hablar, hablás.",
+    ],
   },
   bautismo: {
     titulo: "¿El bautismo es tu próximo paso?",
